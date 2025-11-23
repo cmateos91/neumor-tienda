@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+/* 👇 ESTA LÍNEA ES LA CLAVE EN TAILWIND V4  */
+@custom-variant dark (&:where(.dark, .dark *));
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Cursor pointer global para elementos interactivos */
+button,
+a,
+[role="button"],
+input[type="submit"],
+input[type="button"],
+input[type="reset"],
+input[type="checkbox"],
+input[type="radio"],
+select,
+label[for],
+summary {
+  cursor: pointer;
+}
+
+/* Excepciones para elementos deshabilitados */
+button:disabled,
+input:disabled,
+select:disabled,
+[disabled] {
+  cursor: not-allowed;
+}
+
+/* Links siempre con pointer */
+a:not([disabled]) {
+  cursor: pointer;
+}
+
+/* ================================
+   PAGE BUILDER ANIMATIONS
+   ================================ */
+
+/* Wiggle animation estilo iPhone - suave */
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-0.3deg) scale(1.01); }
+  50% { transform: rotate(0.3deg) scale(1.01); }
+}
+
+.animate-wiggle {
+  animation: wiggle 0.4s ease-in-out infinite;
+}
+
+/* Lift animation */
+@keyframes lift {
+  0% { transform: scale(1); box-shadow: none; }
+  100% { transform: scale(1.02); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+}
+
+.animate-lift {
+  animation: lift 0.2s ease-out forwards;
+}
+
+/* Press down feedback */
+@keyframes press {
+  0% { transform: scale(1); }
+  100% { transform: scale(0.98); }
+}
+
+.animate-press {
+  animation: press 0.1s ease-out forwards;
+}
+
+/* Fade in up para elementos del builder */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Shadow extra grande para drag */
+.shadow-3xl {
+  box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.3);
+}
+
+

@@ -1,0 +1,206 @@
+:root {
+  --neuro-light: #ffffff;
+  --neuro-dark: #d1d1d1;
+  --neuro-bg: #e6e6e6;
+  --accent-gold: #d4af37;
+  --text-primary: #2c2c2c;
+  --text-secondary: #666666;
+}
+
+.neuro-flat {
+  background: var(--neuro-bg);
+  box-shadow: 8px 8px 16px var(--neuro-dark),
+              -8px -8px 16px var(--neuro-light);
+}
+
+.neuro-pressed {
+  background: var(--neuro-bg);
+  box-shadow: inset 4px 4px 8px var(--neuro-dark),
+              inset -4px -4px 8px var(--neuro-light);
+}
+
+.neuro-raised {
+  background: linear-gradient(145deg, #f0f0f0, #dcdcdc);
+  box-shadow: 6px 6px 12px var(--neuro-dark),
+              -6px -6px 12px var(--neuro-light);
+}
+
+/* Cursor pointer para todos los elementos interactivos */
+button,
+a,
+[onclick],
+[role="button"],
+.neuro-flat.neuro-hover,
+.neuro-pressed[onclick],
+button.neuro-flat,
+button.neuro-pressed {
+  cursor: pointer;
+}
+
+.neuro-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.neuro-hover:hover {
+  box-shadow: 4px 4px 8px var(--neuro-dark),
+              -4px -4px 8px var(--neuro-light);
+  transform: translateY(-1px);
+}
+
+.neuro-hover:active {
+  box-shadow: inset 3px 3px 6px var(--neuro-dark),
+              inset -3px -3px 6px var(--neuro-light);
+  transform: translateY(0);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Transiciones suaves entre páginas */
+@keyframes pageTransition {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-transition {
+  animation: pageTransition 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ==========================================
+   ESTILOS PARA ELEMENTOS EDITABLES (Admin)
+   ========================================== */
+
+.editable-element {
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: inherit;
+}
+
+/* Efecto hover elegante */
+.editable-element.editable-hover {
+  outline: 2px dashed var(--accent-gold);
+  outline-offset: 4px;
+}
+
+.editable-element.editable-hover::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  background: rgba(212, 175, 55, 0.05);
+  border-radius: inherit;
+  pointer-events: none;
+  animation: editablePulse 2s ease-in-out infinite;
+}
+
+/* Efecto seleccionado */
+.editable-element.editable-selected {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 4px;
+  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.15);
+}
+
+.editable-element.editable-selected::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  background: rgba(212, 175, 55, 0.08);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* Tooltip "Editar" */
+.editable-tooltip {
+  position: absolute;
+  top: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent-gold);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1000;
+  animation: tooltipFadeIn 0.2s ease-out;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.editable-tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid var(--accent-gold);
+}
+
+/* Indicador de edicion (icono lapiz) */
+.editable-indicator {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  width: 28px;
+  height: 28px;
+  background: var(--accent-gold);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+  animation: indicatorBounce 0.4s ease-out;
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4);
+}
+
+/* Animaciones */
+@keyframes editablePulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes indicatorBounce {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

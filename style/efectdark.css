@@ -1,0 +1,32 @@
+/* style/efectdark.css */
+
+.neumor-pill {
+  border-radius: 999px;
+  background: linear-gradient(135deg, #F2F3F7, #FFFFFF);
+  box-shadow:
+    -10px -10px 22px #FFFFFF,
+    10px 10px 22px #D1D5DB;
+}
+
+.dark .neumor-pill {
+  background: linear-gradient(135deg, #151C23, #0F141A);
+  box-shadow:
+    -10px -10px 22px #1F2937,
+    10px 10px 22px #020617;
+}
+
+/* Form card - mismo estilo neumórfico pero con bordes adaptados al formulario */
+.form-card {
+  border-radius: 1.5rem;
+  background: linear-gradient(135deg, #F2F3F7, #FFFFFF);
+  box-shadow:
+    -10px -10px 22px #FFFFFF,
+    10px 10px 22px #D1D5DB;
+}
+
+.dark .form-card {
+  background: linear-gradient(135deg, #151C23, #0F141A);
+  box-shadow:
+    -10px -10px 22px #1F2937,
+    10px 10px 22px #020617;
+}
