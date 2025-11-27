@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Trash2, Eye, RefreshCw, Image, ChevronDown, ChevronUp } from 'lucide-react';
+import { Trash2, Eye, RefreshCw, Image, ChevronDown, ChevronUp, Undo2 } from 'lucide-react';
 import { SitioGaleria } from '@/lib/database.types';
 import { ImageUploader } from '../ui/ImageUploader';
-import { deleteImage, isSupabaseStorageUrl } from '@/lib/storage';
+import { isSupabaseStorageUrl } from '@/lib/storage';
 
 interface GaleriaTabProps {
   sitio: { id: string } | null;
@@ -14,13 +14,14 @@ interface GaleriaTabProps {
   onUpdateItem: (id: string, field: string, value: string) => void;
   onDeleteItem: (id: string) => Promise<boolean>;
   onRefresh: () => void;
-  // Dialog functions
-  promptUrl: (title: string) => Promise<string | null>;
-  confirmDelete: (itemName: string) => Promise<boolean>;
   // Pending files - modo diferido
   addPendingFile?: (id: string, file: File, previewUrl: string, folder: string) => void;
   removePendingFile?: (id: string) => void;
   isPending?: (id: string) => boolean;
+  // Pending deletes - eliminaciones diferidas
+  markForDeletion?: (id: string, type: 'galeria' | 'menu', imageUrl?: string) => void;
+  unmarkForDeletion?: (id: string) => void;
+  isMarkedForDeletion?: (id: string) => boolean;
 }
 
 export function GaleriaTab({
@@ -29,18 +30,20 @@ export function GaleriaTab({
   onAddItem,
   onToggleHome,
   onUpdateItem,
-  onDeleteItem,
   onRefresh,
-  confirmDelete,
   addPendingFile,
   removePendingFile,
-  isPending
+  isPending,
+  markForDeletion,
+  unmarkForDeletion,
+  isMarkedForDeletion
 }: GaleriaTabProps) {
   const [newImageUrl, setNewImageUrl] = useState('');
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
 
   // Modo diferido activado si tenemos las funciones
   const deferredMode = !!(addPendingFile && removePendingFile);
+  const deferredDeleteMode = !!(markForDeletion && unmarkForDeletion && isMarkedForDeletion);
 
   // Cuando se sube/selecciona una imagen nueva
   const handleNewImage = async (url: string) => {
@@ -70,28 +73,28 @@ export function GaleriaTab({
     }
   };
 
-  // Eliminar imagen de la galeria y del storage
-  const handleDeleteItem = async (item: SitioGaleria) => {
-    const confirmed = await confirmDelete(item.titulo || 'esta imagen');
-    if (confirmed) {
-      // Limpiar archivo pendiente si existe
-      if (removePendingFile) {
-        removePendingFile(`galeria-${item.id}`);
-      }
-      // Si es una imagen del storage (no blob), eliminarla
-      if (isSupabaseStorageUrl(item.url)) {
-        await deleteImage(item.url);
-      }
-      await onDeleteItem(item.id);
+  // Eliminar imagen - modo diferido (sin confirmación, se puede restaurar)
+  const handleDeleteItem = (item: SitioGaleria) => {
+    // Limpiar archivo pendiente si existe
+    if (removePendingFile) {
+      removePendingFile(`galeria-${item.id}`);
+    }
+
+    if (deferredDeleteMode) {
+      // Modo diferido: solo marcar para eliminación
+      markForDeletion!(item.id, 'galeria', item.url);
+    }
+  };
+
+  // Restaurar item marcado para eliminación
+  const handleRestoreItem = (id: string) => {
+    if (unmarkForDeletion) {
+      unmarkForDeletion(id);
     }
   };
 
   // Cambiar imagen de un item existente
   const handleImageChange = async (item: SitioGaleria, newUrl: string) => {
-    // Si la imagen anterior era del storage y la nueva es diferente, eliminar la anterior
-    if (item.url && isSupabaseStorageUrl(item.url) && newUrl !== item.url) {
-      await deleteImage(item.url);
-    }
     onUpdateItem(item.id, 'url', newUrl);
   };
 
@@ -99,6 +102,12 @@ export function GaleriaTab({
   const hasItemPending = (id: string) => {
     if (!isPending) return false;
     return isPending(`galeria-${id}`);
+  };
+
+  // Verificar si un item está marcado para eliminación
+  const isItemMarkedForDeletion = (id: string) => {
+    if (!isMarkedForDeletion) return false;
+    return isMarkedForDeletion(id);
   };
 
   return (
@@ -127,89 +136,127 @@ export function GaleriaTab({
 
       {/* Lista de imagenes */}
       <div className="space-y-3">
-        {galeria.map(img => (
-          <div key={img.id} className="neuro-card-sm overflow-hidden">
-            {/* Header con preview y acciones rapidas */}
-            <div className="p-3 flex items-center gap-3">
-              <div className="relative w-16 h-16 rounded-lg overflow-hidden neuro-inset flex-shrink-0">
-                <img src={img.url} alt="" className="w-full h-full object-cover" />
-                {hasItemPending(img.id) && (
-                  <div className="absolute inset-0 bg-amber-500/30 flex items-center justify-center">
-                    <span className="text-xs text-white font-medium">Pendiente</span>
-                  </div>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <input
-                  type="text"
-                  value={img.titulo || ''}
-                  onChange={(e) => onUpdateItem(img.id, 'titulo', e.target.value)}
-                  className="neuro-input text-sm w-full"
-                  placeholder="Titulo de la imagen"
-                />
-                <div className="flex items-center gap-2 mt-2">
-                  <button
-                    onClick={() => onToggleHome(img.id, img.es_home)}
-                    className={`text-xs px-2 py-1 rounded-lg flex items-center gap-1 cursor-pointer transition-colors ${
-                      img.es_home
-                        ? 'bg-[#d4af37] text-white'
-                        : 'neuro-flat text-gray-600 hover:text-gray-800'
-                    }`}
-                  >
-                    <Eye className="w-3 h-3" />
-                    {img.es_home ? 'En Home' : 'Mostrar'}
-                  </button>
-                  {isSupabaseStorageUrl(img.url) && !hasItemPending(img.id) && (
-                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
-                      Storage
-                    </span>
+        {galeria.map(img => {
+          const markedForDeletion = isItemMarkedForDeletion(img.id);
+
+          return (
+            <div
+              key={img.id}
+              className={`neuro-card-sm overflow-hidden transition-all ${
+                markedForDeletion ? 'opacity-60 ring-2 ring-red-300' : ''
+              }`}
+            >
+              {/* Header con preview y acciones rapidas */}
+              <div className="p-3 flex items-center gap-3">
+                <div className="relative w-16 h-16 rounded-lg overflow-hidden neuro-inset flex-shrink-0">
+                  <img src={img.url} alt="" className="w-full h-full object-cover" />
+                  {markedForDeletion && (
+                    <div className="absolute inset-0 bg-red-500/50 flex items-center justify-center">
+                      <Trash2 className="w-5 h-5 text-white" />
+                    </div>
                   )}
-                  {hasItemPending(img.id) && (
-                    <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
-                      Pendiente
-                    </span>
+                  {!markedForDeletion && hasItemPending(img.id) && (
+                    <div className="absolute inset-0 bg-amber-500/30 flex items-center justify-center">
+                      <span className="text-xs text-white font-medium">Pendiente</span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  {markedForDeletion ? (
+                    <p className="text-sm text-red-600 font-medium">Marcada para eliminar</p>
+                  ) : (
+                    <input
+                      type="text"
+                      value={img.titulo || ''}
+                      onChange={(e) => onUpdateItem(img.id, 'titulo', e.target.value)}
+                      className="neuro-input text-sm w-full"
+                      placeholder="Titulo de la imagen"
+                    />
+                  )}
+                  <div className="flex items-center gap-2 mt-2">
+                    {markedForDeletion ? (
+                      <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">
+                        Se eliminará al publicar
+                      </span>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => onToggleHome(img.id, img.es_home)}
+                          className={`text-xs px-2 py-1 rounded-lg flex items-center gap-1 cursor-pointer transition-colors ${
+                            img.es_home
+                              ? 'bg-[#d4af37] text-white'
+                              : 'neuro-flat text-gray-600 hover:text-gray-800'
+                          }`}
+                        >
+                          <Eye className="w-3 h-3" />
+                          {img.es_home ? 'En Home' : 'Mostrar'}
+                        </button>
+                        {isSupabaseStorageUrl(img.url) && !hasItemPending(img.id) && (
+                          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                            Storage
+                          </span>
+                        )}
+                        {hasItemPending(img.id) && (
+                          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
+                            Pendiente
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1">
+                  {markedForDeletion ? (
+                    <button
+                      onClick={() => handleRestoreItem(img.id)}
+                      className="p-1.5 rounded-lg text-green-500 hover:text-green-700 hover:bg-green-50"
+                      title="Restaurar"
+                    >
+                      <Undo2 className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => setExpandedItem(expandedItem === img.id ? null : img.id)}
+                        className="p-1.5 rounded-lg neuro-flat text-gray-500 hover:text-gray-700"
+                        title="Editar imagen"
+                      >
+                        {expandedItem === img.id ? (
+                          <ChevronUp className="w-4 h-4" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4" />
+                        )}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteItem(img)}
+                        className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50"
+                        title="Eliminar"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
-              <div className="flex flex-col gap-1">
-                <button
-                  onClick={() => setExpandedItem(expandedItem === img.id ? null : img.id)}
-                  className="p-1.5 rounded-lg neuro-flat text-gray-500 hover:text-gray-700"
-                  title="Editar imagen"
-                >
-                  {expandedItem === img.id ? (
-                    <ChevronUp className="w-4 h-4" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4" />
-                  )}
-                </button>
-                <button
-                  onClick={() => handleDeleteItem(img)}
-                  className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50"
-                  title="Eliminar"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
 
-            {/* Panel expandible para cambiar imagen */}
-            {expandedItem === img.id && (
-              <div className="px-3 pb-3 pt-0 border-t border-gray-100 animate-fadeIn">
-                <p className="text-xs text-gray-500 mb-2 pt-3">Cambiar imagen:</p>
-                <ImageUploader
-                  value={img.url}
-                  onChange={(url) => handleImageChange(img, url)}
-                  folder="galeria"
-                  showUrlInput={true}
-                  deferred={deferredMode}
-                  onFileSelect={handleExistingFileSelect(img.id)}
-                  hasPendingFile={hasItemPending(img.id)}
-                />
-              </div>
-            )}
-          </div>
-        ))}
+              {/* Panel expandible para cambiar imagen */}
+              {!markedForDeletion && expandedItem === img.id && (
+                <div className="px-3 pb-3 pt-0 border-t border-gray-100 animate-fadeIn">
+                  <p className="text-xs text-gray-500 mb-2 pt-3">Cambiar imagen:</p>
+                  <ImageUploader
+                    value={img.url}
+                    onChange={(url) => handleImageChange(img, url)}
+                    folder="galeria"
+                    showUrlInput={true}
+                    deferred={deferredMode}
+                    onFileSelect={handleExistingFileSelect(img.id)}
+                    hasPendingFile={hasItemPending(img.id)}
+                  />
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {galeria.length === 0 && sitio && (

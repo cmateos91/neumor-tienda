@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Plus, Trash2, Eye, EyeOff, RefreshCw, UtensilsCrossed, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Trash2, Eye, EyeOff, RefreshCw, UtensilsCrossed, ChevronDown, ChevronUp, Undo2 } from 'lucide-react';
 import { SitioMenuCategoria, SitioMenuItem } from '@/lib/database.types';
 import { ImageUploader } from '../ui/ImageUploader';
-import { deleteImage, isSupabaseStorageUrl } from '@/lib/storage';
+import { isSupabaseStorageUrl } from '@/lib/storage';
 
 interface MenuTabProps {
   sitio: { id: string } | null;
@@ -17,11 +17,14 @@ interface MenuTabProps {
   onRefresh: () => void;
   // Dialog functions
   promptText: (title: string, placeholder?: string) => Promise<string | null>;
-  confirmDelete: (itemName: string) => Promise<boolean>;
   // Pending files - modo diferido
   addPendingFile?: (id: string, file: File, previewUrl: string, folder: string) => void;
   removePendingFile?: (id: string) => void;
   isPending?: (id: string) => boolean;
+  // Pending deletes - eliminaciones diferidas
+  markForDeletion?: (id: string, type: 'galeria' | 'menu', imageUrl?: string) => void;
+  unmarkForDeletion?: (id: string) => void;
+  isMarkedForDeletion?: (id: string) => boolean;
 }
 
 export function MenuTab({
@@ -31,18 +34,20 @@ export function MenuTab({
   onAddCategoria,
   onAddMenuItem,
   onUpdateMenuItem,
-  onDeleteMenuItem,
   onRefresh,
   promptText,
-  confirmDelete,
   addPendingFile,
   removePendingFile,
-  isPending
+  isPending,
+  markForDeletion,
+  unmarkForDeletion,
+  isMarkedForDeletion
 }: MenuTabProps) {
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
 
   // Modo diferido activado si tenemos las funciones
   const deferredMode = !!(addPendingFile && removePendingFile);
+  const deferredDeleteMode = !!(markForDeletion && unmarkForDeletion && isMarkedForDeletion);
 
   const handleAddCategoria = async () => {
     const nombre = await promptText('Nueva categoria', 'Nombre de la categoria');
@@ -51,18 +56,23 @@ export function MenuTab({
     }
   };
 
-  const handleDeleteMenuItem = async (item: SitioMenuItem) => {
-    const confirmed = await confirmDelete(item.nombre);
-    if (confirmed) {
-      // Limpiar archivo pendiente si existe
-      if (removePendingFile) {
-        removePendingFile(`menu-${item.id}`);
-      }
-      // Si tiene imagen del storage, eliminarla
-      if (item.imagen_url && isSupabaseStorageUrl(item.imagen_url)) {
-        await deleteImage(item.imagen_url);
-      }
-      await onDeleteMenuItem(item.id);
+  // Eliminar item - modo diferido (sin confirmación, se puede restaurar)
+  const handleDeleteMenuItem = (item: SitioMenuItem) => {
+    // Limpiar archivo pendiente si existe
+    if (removePendingFile) {
+      removePendingFile(`menu-${item.id}`);
+    }
+
+    if (deferredDeleteMode) {
+      // Modo diferido: solo marcar para eliminación
+      markForDeletion!(item.id, 'menu', item.imagen_url || undefined);
+    }
+  };
+
+  // Restaurar item marcado para eliminación
+  const handleRestoreItem = (id: string) => {
+    if (unmarkForDeletion) {
+      unmarkForDeletion(id);
     }
   };
 
@@ -75,10 +85,6 @@ export function MenuTab({
 
   // Cambiar imagen de un item
   const handleImageChange = async (item: SitioMenuItem, newUrl: string) => {
-    // Si la imagen anterior era del storage y la nueva es diferente, eliminar la anterior
-    if (item.imagen_url && isSupabaseStorageUrl(item.imagen_url) && newUrl !== item.imagen_url) {
-      await deleteImage(item.imagen_url);
-    }
     onUpdateMenuItem(item.id, 'imagen_url', newUrl);
   };
 
@@ -86,6 +92,12 @@ export function MenuTab({
   const hasItemPending = (id: string) => {
     if (!isPending) return false;
     return isPending(`menu-${id}`);
+  };
+
+  // Verificar si un item está marcado para eliminación
+  const isItemMarkedForDeletion = (id: string) => {
+    if (!isMarkedForDeletion) return false;
+    return isMarkedForDeletion(id);
   };
 
   return (
@@ -118,104 +130,149 @@ export function MenuTab({
             </button>
           </div>
           <div className="divide-y divide-gray-200/50">
-            {menuItems.filter(i => i.categoria_id === cat.id).map(item => (
-              <div key={item.id} className="px-4 py-3 space-y-2">
-                {/* Fila principal */}
-                <div className="flex items-center gap-2">
-                  {/* Preview de imagen */}
-                  {item.imagen_url ? (
-                    <div className="relative w-10 h-10 rounded overflow-hidden flex-shrink-0 neuro-inset">
-                      <img src={item.imagen_url} alt="" className="w-full h-full object-cover" />
-                      {hasItemPending(item.id) && (
-                        <div className="absolute inset-0 bg-amber-500/30" />
-                      )}
-                    </div>
-                  ) : (
-                    <div className="w-10 h-10 rounded flex-shrink-0 neuro-inset flex items-center justify-center">
-                      <UtensilsCrossed className="w-4 h-4 text-gray-300" />
+            {menuItems.filter(i => i.categoria_id === cat.id).map(item => {
+              const markedForDeletion = isItemMarkedForDeletion(item.id);
+
+              return (
+                <div
+                  key={item.id}
+                  className={`px-4 py-3 space-y-2 transition-all ${
+                    markedForDeletion ? 'opacity-60 bg-red-50' : ''
+                  }`}
+                >
+                  {/* Fila principal */}
+                  <div className="flex items-center gap-2">
+                    {/* Preview de imagen */}
+                    {item.imagen_url ? (
+                      <div className="relative w-10 h-10 rounded overflow-hidden flex-shrink-0 neuro-inset">
+                        <img src={item.imagen_url} alt="" className="w-full h-full object-cover" />
+                        {markedForDeletion && (
+                          <div className="absolute inset-0 bg-red-500/50 flex items-center justify-center">
+                            <Trash2 className="w-4 h-4 text-white" />
+                          </div>
+                        )}
+                        {!markedForDeletion && hasItemPending(item.id) && (
+                          <div className="absolute inset-0 bg-amber-500/30" />
+                        )}
+                      </div>
+                    ) : (
+                      <div className={`w-10 h-10 rounded flex-shrink-0 neuro-inset flex items-center justify-center ${
+                        markedForDeletion ? 'bg-red-100' : ''
+                      }`}>
+                        {markedForDeletion ? (
+                          <Trash2 className="w-4 h-4 text-red-400" />
+                        ) : (
+                          <UtensilsCrossed className="w-4 h-4 text-gray-300" />
+                        )}
+                      </div>
+                    )}
+
+                    {markedForDeletion ? (
+                      <div className="flex-1">
+                        <p className="text-sm text-red-600 font-medium line-through">{item.nombre}</p>
+                        <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">
+                          Se eliminará al publicar
+                        </span>
+                      </div>
+                    ) : (
+                      <input
+                        type="text"
+                        value={item.nombre}
+                        onChange={(e) => onUpdateMenuItem(item.id, 'nombre', e.target.value)}
+                        className="neuro-input text-sm flex-1"
+                        placeholder="Nombre del plato"
+                      />
+                    )}
+
+                    {markedForDeletion ? (
+                      <button
+                        onClick={() => handleRestoreItem(item.id)}
+                        className="p-1.5 rounded-lg text-green-500 hover:text-green-700 hover:bg-green-50"
+                        title="Restaurar"
+                      >
+                        <Undo2 className="w-4 h-4" />
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => onUpdateMenuItem(item.id, 'disponible', !item.disponible)}
+                          className={`cursor-pointer p-1 ${item.disponible ? 'text-green-500' : 'text-gray-400'}`}
+                          title={item.disponible ? 'Disponible' : 'No disponible'}
+                        >
+                          {item.disponible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                        </button>
+                        <button
+                          onClick={() => setExpandedItem(expandedItem === item.id ? null : item.id)}
+                          className="p-1 text-gray-400 hover:text-gray-600"
+                          title="Mas opciones"
+                        >
+                          {expandedItem === item.id ? (
+                            <ChevronUp className="w-4 h-4" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4" />
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteMenuItem(item)}
+                          className="text-red-400 hover:text-red-600 cursor-pointer p-1"
+                          title="Eliminar"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Precio y descripcion - solo si no está marcado para eliminación */}
+                  {!markedForDeletion && (
+                    <div className="flex gap-2 pl-12">
+                      <div className="relative">
+                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                        <input
+                          type="number"
+                          value={item.precio}
+                          onChange={(e) => onUpdateMenuItem(item.id, 'precio', parseFloat(e.target.value) || 0)}
+                          className="neuro-input text-sm w-24 pl-5"
+                          placeholder="0.00"
+                        />
+                      </div>
+                      <input
+                        type="text"
+                        value={item.descripcion || ''}
+                        onChange={(e) => onUpdateMenuItem(item.id, 'descripcion', e.target.value)}
+                        className="neuro-input text-sm flex-1"
+                        placeholder="Descripcion"
+                      />
                     </div>
                   )}
-                  <input
-                    type="text"
-                    value={item.nombre}
-                    onChange={(e) => onUpdateMenuItem(item.id, 'nombre', e.target.value)}
-                    className="neuro-input text-sm flex-1"
-                    placeholder="Nombre del plato"
-                  />
-                  <button
-                    onClick={() => onUpdateMenuItem(item.id, 'disponible', !item.disponible)}
-                    className={`cursor-pointer p-1 ${item.disponible ? 'text-green-500' : 'text-gray-400'}`}
-                    title={item.disponible ? 'Disponible' : 'No disponible'}
-                  >
-                    {item.disponible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                  </button>
-                  <button
-                    onClick={() => setExpandedItem(expandedItem === item.id ? null : item.id)}
-                    className="p-1 text-gray-400 hover:text-gray-600"
-                    title="Mas opciones"
-                  >
-                    {expandedItem === item.id ? (
-                      <ChevronUp className="w-4 h-4" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4" />
-                    )}
-                  </button>
-                  <button
-                    onClick={() => handleDeleteMenuItem(item)}
-                    className="text-red-400 hover:text-red-600 cursor-pointer p-1"
-                    title="Eliminar"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
 
-                {/* Precio y descripcion */}
-                <div className="flex gap-2 pl-12">
-                  <div className="relative">
-                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
-                    <input
-                      type="number"
-                      value={item.precio}
-                      onChange={(e) => onUpdateMenuItem(item.id, 'precio', parseFloat(e.target.value) || 0)}
-                      className="neuro-input text-sm w-24 pl-5"
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <input
-                    type="text"
-                    value={item.descripcion || ''}
-                    onChange={(e) => onUpdateMenuItem(item.id, 'descripcion', e.target.value)}
-                    className="neuro-input text-sm flex-1"
-                    placeholder="Descripcion"
-                  />
-                </div>
-
-                {/* Panel expandido con imagen */}
-                {expandedItem === item.id && (
-                  <div className="pl-12 pt-2 animate-fadeIn">
-                    <div className="flex items-center gap-2 mb-2">
-                      <p className="text-xs text-gray-500">Imagen del plato (opcional):</p>
-                      {hasItemPending(item.id) && (
-                        <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
-                          Pendiente
-                        </span>
-                      )}
+                  {/* Panel expandido con imagen - solo si no está marcado para eliminación */}
+                  {!markedForDeletion && expandedItem === item.id && (
+                    <div className="pl-12 pt-2 animate-fadeIn">
+                      <div className="flex items-center gap-2 mb-2">
+                        <p className="text-xs text-gray-500">Imagen del plato (opcional):</p>
+                        {hasItemPending(item.id) && (
+                          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
+                            Pendiente
+                          </span>
+                        )}
+                      </div>
+                      <ImageUploader
+                        value={item.imagen_url || ''}
+                        onChange={(url) => handleImageChange(item, url)}
+                        onDelete={() => handleImageChange(item, '')}
+                        folder="menu"
+                        placeholder="Arrastra una imagen o haz clic"
+                        showUrlInput={true}
+                        deferred={deferredMode}
+                        onFileSelect={handleFileSelect(item.id)}
+                        hasPendingFile={hasItemPending(item.id)}
+                      />
                     </div>
-                    <ImageUploader
-                      value={item.imagen_url || ''}
-                      onChange={(url) => handleImageChange(item, url)}
-                      onDelete={() => handleImageChange(item, '')}
-                      folder="menu"
-                      placeholder="Arrastra una imagen o haz clic"
-                      showUrlInput={true}
-                      deferred={deferredMode}
-                      onFileSelect={handleFileSelect(item.id)}
-                      hasPendingFile={hasItemPending(item.id)}
-                    />
-                  </div>
-                )}
-              </div>
-            ))}
+                  )}
+                </div>
+              );
+            })}
             {menuItems.filter(i => i.categoria_id === cat.id).length === 0 && (
               <div className="px-4 py-6 text-center text-gray-400 text-sm">
                 Sin items. Haz clic en + para agregar.

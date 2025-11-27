@@ -10,6 +10,7 @@ import {
   useAdminUI,
   useDialogs,
   usePendingFiles,
+  usePendingDeletes,
   tabs
 } from './hooks';
 
@@ -46,6 +47,8 @@ export default function AdminEditor() {
     formRestaurante,
     loading,
     setFormRestaurante,
+    setGaleria,
+    setMenuItems,
     saveRestaurante,
     addCategoria,
     addMenuItem,
@@ -107,6 +110,16 @@ export default function AdminEditor() {
     uploadAllPending
   } = usePendingFiles();
 
+  // Hook de eliminaciones pendientes (eliminación diferida)
+  const {
+    markForDeletion,
+    unmarkForDeletion,
+    isMarkedForDeletion,
+    hasPendingDeletes,
+    pendingDeleteCount,
+    executeAllDeletes
+  } = usePendingDeletes();
+
   // Hook de comunicacion con iframe
   const {
     iframeRef,
@@ -134,18 +147,22 @@ export default function AdminEditor() {
     }
   });
 
-  // Sincronizar datos con iframe cuando cambian
+  // Sincronizar datos con iframe cuando cambian (excluyendo items marcados para eliminación)
   useEffect(() => {
     sendRestauranteData(formRestaurante);
   }, [formRestaurante, sendRestauranteData]);
 
   useEffect(() => {
-    sendMenuData(categorias, menuItems);
-  }, [categorias, menuItems, sendMenuData]);
+    // Filtrar items marcados para eliminación
+    const filteredMenuItems = menuItems.filter(item => !isMarkedForDeletion(item.id));
+    sendMenuData(categorias, filteredMenuItems);
+  }, [categorias, menuItems, sendMenuData, isMarkedForDeletion]);
 
   useEffect(() => {
-    sendGaleriaData(galeria);
-  }, [galeria, sendGaleriaData]);
+    // Filtrar items marcados para eliminación
+    const filteredGaleria = galeria.filter(item => !isMarkedForDeletion(item.id));
+    sendGaleriaData(filteredGaleria);
+  }, [galeria, sendGaleriaData, isMarkedForDeletion]);
 
   useEffect(() => {
     sendFeaturesData(features);
@@ -171,7 +188,22 @@ export default function AdminEditor() {
       let updatedGaleria = [...galeria];
       let updatedMenuItems = [...menuItems];
 
-      // Primero subir archivos pendientes si hay
+      // 1. Primero ejecutar eliminaciones pendientes si hay
+      if (hasPendingDeletes) {
+        showMessage('info', `Eliminando ${pendingDeleteCount} elemento(s)...`);
+
+        const { deletedGaleria, deletedMenu } = await executeAllDeletes();
+
+        // Filtrar los items eliminados de las copias locales
+        updatedGaleria = updatedGaleria.filter(g => !deletedGaleria.includes(g.id));
+        updatedMenuItems = updatedMenuItems.filter(m => !deletedMenu.includes(m.id));
+
+        // Actualizar el estado local para que la UI refleje las eliminaciones
+        setGaleria(updatedGaleria);
+        setMenuItems(updatedMenuItems);
+      }
+
+      // 2. Luego subir archivos pendientes si hay
       if (hasPendingFiles) {
         showMessage('info', `Subiendo ${pendingCount} imagen(es)...`);
 
@@ -201,7 +233,7 @@ export default function AdminEditor() {
         }
       }
 
-      // Guardar con los datos actualizados
+      // 3. Guardar con los datos actualizados (excluyendo eliminados)
       const success = await saveRestaurante({
         galeria: updatedGaleria,
         menuItems: updatedMenuItems
@@ -321,10 +353,12 @@ export default function AdminEditor() {
                   onDeleteMenuItem={deleteMenuItem}
                   onRefresh={refreshIframe}
                   promptText={promptText}
-                  confirmDelete={confirmDelete}
                   addPendingFile={addPendingFile}
                   removePendingFile={removePendingFile}
                   isPending={isPending}
+                  markForDeletion={markForDeletion}
+                  unmarkForDeletion={unmarkForDeletion}
+                  isMarkedForDeletion={isMarkedForDeletion}
                 />
               )}
 
@@ -337,11 +371,12 @@ export default function AdminEditor() {
                   onUpdateItem={updateGaleriaItem}
                   onDeleteItem={deleteGaleriaItem}
                   onRefresh={refreshIframe}
-                  promptUrl={promptUrl}
-                  confirmDelete={confirmDelete}
                   addPendingFile={addPendingFile}
                   removePendingFile={removePendingFile}
                   isPending={isPending}
+                  markForDeletion={markForDeletion}
+                  unmarkForDeletion={unmarkForDeletion}
+                  isMarkedForDeletion={isMarkedForDeletion}
                 />
               )}
 
