@@ -9,7 +9,7 @@ import { deleteImage, isSupabaseStorageUrl } from '@/lib/storage';
 interface GaleriaTabProps {
   sitio: { id: string } | null;
   galeria: SitioGaleria[];
-  onAddItem: (url: string) => Promise<boolean>;
+  onAddItem: (url: string) => Promise<string | null>;
   onToggleHome: (id: string, current: boolean) => void;
   onUpdateItem: (id: string, field: string, value: string) => void;
   onDeleteItem: (id: string) => Promise<boolean>;
@@ -17,6 +17,10 @@ interface GaleriaTabProps {
   // Dialog functions
   promptUrl: (title: string) => Promise<string | null>;
   confirmDelete: (itemName: string) => Promise<boolean>;
+  // Pending files - modo diferido
+  addPendingFile?: (id: string, file: File, previewUrl: string, folder: string) => void;
+  removePendingFile?: (id: string) => void;
+  isPending?: (id: string) => boolean;
 }
 
 export function GaleriaTab({
@@ -27,18 +31,42 @@ export function GaleriaTab({
   onUpdateItem,
   onDeleteItem,
   onRefresh,
-  confirmDelete
+  confirmDelete,
+  addPendingFile,
+  removePendingFile,
+  isPending
 }: GaleriaTabProps) {
   const [newImageUrl, setNewImageUrl] = useState('');
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
 
+  // Modo diferido activado si tenemos las funciones
+  const deferredMode = !!(addPendingFile && removePendingFile);
+
   // Cuando se sube/selecciona una imagen nueva
   const handleNewImage = async (url: string) => {
     if (url) {
-      const success = await onAddItem(url);
-      if (success) {
+      const newId = await onAddItem(url);
+      if (newId) {
         setNewImageUrl('');
       }
+    }
+  };
+
+  // Cuando se selecciona un archivo en modo diferido (nueva imagen)
+  const handleNewFileSelect = async (file: File, previewUrl: string) => {
+    // Crear item con preview y obtener el ID real
+    const newId = await onAddItem(previewUrl);
+    if (newId && addPendingFile) {
+      // Usar el ID real del item creado
+      addPendingFile(`galeria-${newId}`, file, previewUrl, 'galeria');
+      setNewImageUrl('');
+    }
+  };
+
+  // Cuando se cambia la imagen de un item existente en modo diferido
+  const handleExistingFileSelect = (itemId: string) => (file: File, previewUrl: string) => {
+    if (addPendingFile) {
+      addPendingFile(`galeria-${itemId}`, file, previewUrl, 'galeria');
     }
   };
 
@@ -46,7 +74,11 @@ export function GaleriaTab({
   const handleDeleteItem = async (item: SitioGaleria) => {
     const confirmed = await confirmDelete(item.titulo || 'esta imagen');
     if (confirmed) {
-      // Si es una imagen del storage, eliminarla tambien
+      // Limpiar archivo pendiente si existe
+      if (removePendingFile) {
+        removePendingFile(`galeria-${item.id}`);
+      }
+      // Si es una imagen del storage (no blob), eliminarla
       if (isSupabaseStorageUrl(item.url)) {
         await deleteImage(item.url);
       }
@@ -61,6 +93,12 @@ export function GaleriaTab({
       await deleteImage(item.url);
     }
     onUpdateItem(item.id, 'url', newUrl);
+  };
+
+  // Verificar si un item tiene imagen pendiente
+  const hasItemPending = (id: string) => {
+    if (!isPending) return false;
+    return isPending(`galeria-${id}`);
   };
 
   return (
@@ -81,6 +119,8 @@ export function GaleriaTab({
             onDelete={() => setNewImageUrl('')}
             folder="galeria"
             placeholder="Arrastra una imagen o haz clic para seleccionar"
+            deferred={deferredMode}
+            onFileSelect={handleNewFileSelect}
           />
         </div>
       )}
@@ -91,8 +131,13 @@ export function GaleriaTab({
           <div key={img.id} className="neuro-card-sm overflow-hidden">
             {/* Header con preview y acciones rapidas */}
             <div className="p-3 flex items-center gap-3">
-              <div className="w-16 h-16 rounded-lg overflow-hidden neuro-inset flex-shrink-0">
+              <div className="relative w-16 h-16 rounded-lg overflow-hidden neuro-inset flex-shrink-0">
                 <img src={img.url} alt="" className="w-full h-full object-cover" />
+                {hasItemPending(img.id) && (
+                  <div className="absolute inset-0 bg-amber-500/30 flex items-center justify-center">
+                    <span className="text-xs text-white font-medium">Pendiente</span>
+                  </div>
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <input
@@ -114,9 +159,14 @@ export function GaleriaTab({
                     <Eye className="w-3 h-3" />
                     {img.es_home ? 'En Home' : 'Mostrar'}
                   </button>
-                  {isSupabaseStorageUrl(img.url) && (
+                  {isSupabaseStorageUrl(img.url) && !hasItemPending(img.id) && (
                     <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
                       Storage
+                    </span>
+                  )}
+                  {hasItemPending(img.id) && (
+                    <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
+                      Pendiente
                     </span>
                   )}
                 </div>
@@ -152,6 +202,9 @@ export function GaleriaTab({
                   onChange={(url) => handleImageChange(img, url)}
                   folder="galeria"
                   showUrlInput={true}
+                  deferred={deferredMode}
+                  onFileSelect={handleExistingFileSelect(img.id)}
+                  hasPendingFile={hasItemPending(img.id)}
                 />
               </div>
             )}

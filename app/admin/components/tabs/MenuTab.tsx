@@ -2,14 +2,14 @@
 
 import React, { useState } from 'react';
 import { Plus, Trash2, Eye, EyeOff, RefreshCw, UtensilsCrossed, ChevronDown, ChevronUp } from 'lucide-react';
-import { RestauranteMenuCategoria, RestauranteMenuItem } from '@/lib/database.types';
+import { SitioMenuCategoria, SitioMenuItem } from '@/lib/database.types';
 import { ImageUploader } from '../ui/ImageUploader';
 import { deleteImage, isSupabaseStorageUrl } from '@/lib/storage';
 
 interface MenuTabProps {
   sitio: { id: string } | null;
-  categorias: RestauranteMenuCategoria[];
-  menuItems: RestauranteMenuItem[];
+  categorias: SitioMenuCategoria[];
+  menuItems: SitioMenuItem[];
   onAddCategoria: (nombre: string) => Promise<boolean>;
   onAddMenuItem: (categoriaId: string) => Promise<boolean>;
   onUpdateMenuItem: (id: string, field: string, value: string | number | boolean) => void;
@@ -18,6 +18,10 @@ interface MenuTabProps {
   // Dialog functions
   promptText: (title: string, placeholder?: string) => Promise<string | null>;
   confirmDelete: (itemName: string) => Promise<boolean>;
+  // Pending files - modo diferido
+  addPendingFile?: (id: string, file: File, previewUrl: string, folder: string) => void;
+  removePendingFile?: (id: string) => void;
+  isPending?: (id: string) => boolean;
 }
 
 export function MenuTab({
@@ -30,9 +34,15 @@ export function MenuTab({
   onDeleteMenuItem,
   onRefresh,
   promptText,
-  confirmDelete
+  confirmDelete,
+  addPendingFile,
+  removePendingFile,
+  isPending
 }: MenuTabProps) {
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
+
+  // Modo diferido activado si tenemos las funciones
+  const deferredMode = !!(addPendingFile && removePendingFile);
 
   const handleAddCategoria = async () => {
     const nombre = await promptText('Nueva categoria', 'Nombre de la categoria');
@@ -41,9 +51,13 @@ export function MenuTab({
     }
   };
 
-  const handleDeleteMenuItem = async (item: RestauranteMenuItem) => {
+  const handleDeleteMenuItem = async (item: SitioMenuItem) => {
     const confirmed = await confirmDelete(item.nombre);
     if (confirmed) {
+      // Limpiar archivo pendiente si existe
+      if (removePendingFile) {
+        removePendingFile(`menu-${item.id}`);
+      }
       // Si tiene imagen del storage, eliminarla
       if (item.imagen_url && isSupabaseStorageUrl(item.imagen_url)) {
         await deleteImage(item.imagen_url);
@@ -52,13 +66,26 @@ export function MenuTab({
     }
   };
 
+  // Cambiar imagen de un item en modo diferido
+  const handleFileSelect = (itemId: string) => (file: File, previewUrl: string) => {
+    if (addPendingFile) {
+      addPendingFile(`menu-${itemId}`, file, previewUrl, 'menu');
+    }
+  };
+
   // Cambiar imagen de un item
-  const handleImageChange = async (item: RestauranteMenuItem, newUrl: string) => {
+  const handleImageChange = async (item: SitioMenuItem, newUrl: string) => {
     // Si la imagen anterior era del storage y la nueva es diferente, eliminar la anterior
     if (item.imagen_url && isSupabaseStorageUrl(item.imagen_url) && newUrl !== item.imagen_url) {
       await deleteImage(item.imagen_url);
     }
     onUpdateMenuItem(item.id, 'imagen_url', newUrl);
+  };
+
+  // Verificar si un item tiene imagen pendiente
+  const hasItemPending = (id: string) => {
+    if (!isPending) return false;
+    return isPending(`menu-${id}`);
   };
 
   return (
@@ -97,10 +124,10 @@ export function MenuTab({
                 <div className="flex items-center gap-2">
                   {/* Preview de imagen */}
                   {item.imagen_url ? (
-                    <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0 neuro-inset relative group">
+                    <div className="relative w-10 h-10 rounded overflow-hidden flex-shrink-0 neuro-inset">
                       <img src={item.imagen_url} alt="" className="w-full h-full object-cover" />
-                      {isSupabaseStorageUrl(item.imagen_url) && (
-                        <div className="absolute inset-0 bg-green-500/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      {hasItemPending(item.id) && (
+                        <div className="absolute inset-0 bg-amber-500/30" />
                       )}
                     </div>
                   ) : (
@@ -166,7 +193,14 @@ export function MenuTab({
                 {/* Panel expandido con imagen */}
                 {expandedItem === item.id && (
                   <div className="pl-12 pt-2 animate-fadeIn">
-                    <p className="text-xs text-gray-500 mb-2">Imagen del plato (opcional):</p>
+                    <div className="flex items-center gap-2 mb-2">
+                      <p className="text-xs text-gray-500">Imagen del plato (opcional):</p>
+                      {hasItemPending(item.id) && (
+                        <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
+                          Pendiente
+                        </span>
+                      )}
+                    </div>
                     <ImageUploader
                       value={item.imagen_url || ''}
                       onChange={(url) => handleImageChange(item, url)}
@@ -174,6 +208,9 @@ export function MenuTab({
                       folder="menu"
                       placeholder="Arrastra una imagen o haz clic"
                       showUrlInput={true}
+                      deferred={deferredMode}
+                      onFileSelect={handleFileSelect(item.id)}
+                      hasPendingFile={hasItemPending(item.id)}
                     />
                   </div>
                 )}

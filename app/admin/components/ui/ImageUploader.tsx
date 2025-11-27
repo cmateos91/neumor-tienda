@@ -1,8 +1,15 @@
 'use client';
 
 import React, { useState, useRef, useCallback } from 'react';
-import { Upload, X, Image as ImageIcon, Loader2, Link2, AlertCircle } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Loader2, Link2, AlertCircle, Clock } from 'lucide-react';
 import { uploadImage, validateFile, isSupabaseStorageUrl, UploadProgress } from '@/lib/storage';
+
+// Tipo para archivos pendientes de subir
+export interface PendingFile {
+  file: File;
+  previewUrl: string;
+  folder: string;
+}
 
 export interface ImageUploaderProps {
   value?: string;
@@ -13,6 +20,11 @@ export interface ImageUploaderProps {
   className?: string;
   showUrlInput?: boolean;
   compact?: boolean;
+  // Modo diferido: no sube inmediatamente, devuelve el archivo para subirlo despues
+  deferred?: boolean;
+  onFileSelect?: (file: File, previewUrl: string) => void;
+  // Indica si hay un archivo pendiente (para mostrar indicador)
+  hasPendingFile?: boolean;
 }
 
 type Mode = 'upload' | 'url';
@@ -25,7 +37,10 @@ export function ImageUploader({
   placeholder = 'Arrastra una imagen o haz clic para seleccionar',
   className = '',
   showUrlInput = true,
-  compact = false
+  compact = false,
+  deferred = false,
+  onFileSelect,
+  hasPendingFile = false
 }: ImageUploaderProps) {
   const [mode, setMode] = useState<Mode>('upload');
   const [isDragging, setIsDragging] = useState(false);
@@ -49,6 +64,15 @@ export function ImageUploader({
       return;
     }
 
+    // Modo diferido: crear preview local y notificar al padre
+    // Solo llamamos a onFileSelect, que se encarga de crear el item y registrar el pendiente
+    if (deferred && onFileSelect) {
+      const previewUrl = URL.createObjectURL(file);
+      onFileSelect(file, previewUrl);
+      return;
+    }
+
+    // Modo normal: subir inmediatamente
     setIsUploading(true);
     setProgress(0);
 
@@ -61,7 +85,7 @@ export function ImageUploader({
     } else {
       setError(result.error || 'Error al subir');
     }
-  }, [folder, onChange, handleProgress]);
+  }, [folder, onChange, handleProgress, deferred, onFileSelect]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -90,6 +114,10 @@ export function ImageUploader({
     if (file) {
       handleFileSelect(file);
     }
+    // Reset input para permitir seleccionar el mismo archivo
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   }, [handleFileSelect]);
 
   const handleUrlSubmit = useCallback(() => {
@@ -107,10 +135,17 @@ export function ImageUploader({
   }, [urlInput, onChange]);
 
   const handleClear = useCallback(() => {
+    // Si es una URL de blob, revocarla
+    if (value?.startsWith('blob:')) {
+      URL.revokeObjectURL(value);
+    }
     onChange('');
     onDelete?.();
     setError(null);
-  }, [onChange, onDelete]);
+  }, [onChange, onDelete, value]);
+
+  // Detectar si la imagen es un preview local (blob URL)
+  const isLocalPreview = value?.startsWith('blob:');
 
   // Vista compacta para usar inline
   if (compact) {
@@ -118,8 +153,13 @@ export function ImageUploader({
       <div className={`flex items-center gap-2 ${className}`}>
         {value ? (
           <>
-            <div className="w-10 h-10 rounded-lg overflow-hidden neuro-inset flex-shrink-0">
+            <div className="relative w-10 h-10 rounded-lg overflow-hidden neuro-inset flex-shrink-0">
               <img src={value} alt="" className="w-full h-full object-cover" />
+              {(isLocalPreview || hasPendingFile) && (
+                <div className="absolute inset-0 bg-amber-500/20 flex items-center justify-center">
+                  <Clock className="w-4 h-4 text-amber-600" />
+                </div>
+              )}
             </div>
             <button
               onClick={handleClear}
@@ -213,11 +253,17 @@ export function ImageUploader({
               <X className="w-5 h-5" />
             </button>
           </div>
-          {isSupabaseStorageUrl(value) && (
+          {/* Indicador de estado */}
+          {isLocalPreview || hasPendingFile ? (
+            <div className="absolute bottom-2 left-2 bg-amber-500 text-white text-xs px-2 py-0.5 rounded flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              Pendiente
+            </div>
+          ) : isSupabaseStorageUrl(value) ? (
             <div className="absolute bottom-2 left-2 bg-green-500 text-white text-xs px-2 py-0.5 rounded">
               Storage
             </div>
-          )}
+          ) : null}
           <input
             ref={fileInputRef}
             type="file"
@@ -307,6 +353,32 @@ export function ImageUploader({
       )}
     </div>
   );
+}
+
+// Funcion helper para subir archivos pendientes
+export async function uploadPendingFiles(
+  pendingFiles: Map<string, PendingFile>,
+  onProgress?: (id: string, progress: number) => void
+): Promise<Map<string, string>> {
+  const results = new Map<string, string>();
+
+  for (const [id, pending] of pendingFiles) {
+    try {
+      const result = await uploadImage(pending.file, pending.folder, (p) => {
+        onProgress?.(id, p.percent);
+      });
+
+      if (result.success && result.url) {
+        results.set(id, result.url);
+        // Revocar el blob URL
+        URL.revokeObjectURL(pending.previewUrl);
+      }
+    } catch (error) {
+      console.error(`Error uploading file for ${id}:`, error);
+    }
+  }
+
+  return results;
 }
 
 export default ImageUploader;

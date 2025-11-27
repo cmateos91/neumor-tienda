@@ -129,12 +129,12 @@ export interface SitioDataActions {
   setMenuItems: React.Dispatch<React.SetStateAction<SitioMenuItem[]>>;
   setGaleria: React.Dispatch<React.SetStateAction<SitioGaleria[]>>;
   setFeatures: React.Dispatch<React.SetStateAction<SitioFeature[]>>;
-  saveRestaurante: () => Promise<boolean>;
+  saveRestaurante: (updatedData?: { galeria?: SitioGaleria[]; menuItems?: SitioMenuItem[] }) => Promise<boolean>;
   addCategoria: (nombre: string) => Promise<boolean>;
   addMenuItem: (categoriaId: string) => Promise<boolean>;
   updateMenuItem: (id: string, field: string, value: string | number | boolean) => void;
   deleteMenuItem: (id: string) => Promise<boolean>;
-  addGaleriaItem: (url: string) => Promise<boolean>;
+  addGaleriaItem: (url: string) => Promise<string | null>;
   toggleGaleriaHome: (id: string, current: boolean) => void;
   updateGaleriaItem: (id: string, field: string, value: string) => void;
   deleteGaleriaItem: (id: string) => Promise<boolean>;
@@ -270,9 +270,16 @@ export function useSitioData(): UseSitioDataReturn {
     }
   }, []);
 
-  // Guardar restaurante
-  const saveRestaurante = useCallback(async (): Promise<boolean> => {
+  // Guardar restaurante (acepta datos actualizados opcionales para evitar problemas de closure)
+  const saveRestaurante = useCallback(async (updatedData?: {
+    galeria?: SitioGaleria[];
+    menuItems?: SitioMenuItem[];
+  }): Promise<boolean> => {
     if (!sitio) return false;
+
+    // Usar datos actualizados si se proporcionan, sino usar el estado actual
+    const galeriaToSave = updatedData?.galeria ?? galeria;
+    const menuItemsToSave = updatedData?.menuItems ?? menuItems;
 
     try {
       // Actualizar sitio_config
@@ -367,7 +374,7 @@ export function useSitioData(): UseSitioDataReturn {
       ));
 
       // Guardar items del menu en paralelo
-      await Promise.all(menuItems.map(item =>
+      await Promise.all(menuItemsToSave.map(item =>
         supabase
           .from('sitio_menu_items')
           .update({
@@ -383,7 +390,7 @@ export function useSitioData(): UseSitioDataReturn {
       ));
 
       // Guardar items de galeria en paralelo
-      await Promise.all(galeria.map(item =>
+      await Promise.all(galeriaToSave.map(item =>
         supabase
           .from('sitio_galeria')
           .update({
@@ -467,34 +474,53 @@ export function useSitioData(): UseSitioDataReturn {
 
   const deleteMenuItem = useCallback(async (id: string): Promise<boolean> => {
     try {
-      await supabase.from('sitio_menu_items').delete().eq('id', id);
-      await loadAllData();
+      // Actualizar estado local inmediatamente
+      setMenuItems(prev => prev.filter(item => item.id !== id));
+      // Borrar de la BD
+      const { error } = await supabase.from('sitio_menu_items').delete().eq('id', id);
+      if (error) throw error;
       return true;
     } catch (err) {
       console.error('Error deleting menu item:', err);
+      // En caso de error, recargar para restaurar estado correcto
+      await loadAllData();
       return false;
     }
   }, [loadAllData]);
 
   // === CRUD Galeria ===
-  const addGaleriaItem = useCallback(async (url: string): Promise<boolean> => {
-    if (!sitio || !url) return false;
+  const addGaleriaItem = useCallback(async (url: string): Promise<string | null> => {
+    if (!sitio || !url) return null;
 
     try {
-      const { error } = await supabase.from('sitio_galeria').insert({
+      const { data, error } = await supabase.from('sitio_galeria').insert({
         sitio_id: sitio.id,
         url,
         es_home: false,
         orden: galeria.length
-      });
+      }).select('id').single();
       if (error) throw error;
-      await loadAllData();
-      return true;
+
+      // Actualizar estado local con el nuevo item
+      if (data) {
+        setGaleria(prev => [...prev, {
+          id: data.id,
+          sitio_id: sitio.id,
+          url,
+          titulo: null,
+          descripcion: null,
+          es_home: false,
+          orden: galeria.length,
+          created_at: new Date().toISOString()
+        }]);
+        return data.id;
+      }
+      return null;
     } catch (err) {
       console.error('Error adding galeria item:', err);
-      return false;
+      return null;
     }
-  }, [sitio, galeria.length, loadAllData]);
+  }, [sitio, galeria.length]);
 
   const toggleGaleriaHome = useCallback((id: string, current: boolean) => {
     setGaleria(prev => prev.map(g => g.id === id ? { ...g, es_home: !current } : g));
@@ -506,11 +532,16 @@ export function useSitioData(): UseSitioDataReturn {
 
   const deleteGaleriaItem = useCallback(async (id: string): Promise<boolean> => {
     try {
-      await supabase.from('sitio_galeria').delete().eq('id', id);
-      await loadAllData();
+      // Actualizar estado local inmediatamente
+      setGaleria(prev => prev.filter(g => g.id !== id));
+      // Borrar de la BD
+      const { error } = await supabase.from('sitio_galeria').delete().eq('id', id);
+      if (error) throw error;
       return true;
     } catch (err) {
       console.error('Error deleting galeria item:', err);
+      // En caso de error, recargar para restaurar estado correcto
+      await loadAllData();
       return false;
     }
   }, [loadAllData]);
@@ -541,11 +572,16 @@ export function useSitioData(): UseSitioDataReturn {
 
   const deleteFeature = useCallback(async (id: string): Promise<boolean> => {
     try {
-      await supabase.from('sitio_features').delete().eq('id', id);
-      await loadAllData();
+      // Actualizar estado local inmediatamente
+      setFeatures(prev => prev.filter(f => f.id !== id));
+      // Borrar de la BD
+      const { error } = await supabase.from('sitio_features').delete().eq('id', id);
+      if (error) throw error;
       return true;
     } catch (err) {
       console.error('Error deleting feature:', err);
+      // En caso de error, recargar para restaurar estado correcto
+      await loadAllData();
       return false;
     }
   }, [loadAllData]);

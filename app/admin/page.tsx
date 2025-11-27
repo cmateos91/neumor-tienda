@@ -9,6 +9,7 @@ import {
   useIframeCommunication,
   useAdminUI,
   useDialogs,
+  usePendingFiles,
   tabs
 } from './hooks';
 
@@ -96,6 +97,16 @@ export default function AdminEditor() {
     closeInput
   } = useDialogs();
 
+  // Hook de archivos pendientes (subida diferida)
+  const {
+    addPendingFile,
+    removePendingFile,
+    isPending,
+    hasPendingFiles,
+    pendingCount,
+    uploadAllPending
+  } = usePendingFiles();
+
   // Hook de comunicacion con iframe
   const {
     iframeRef,
@@ -155,13 +166,56 @@ export default function AdminEditor() {
     setShowSaveModal(false);
     setSaving(true);
 
-    const success = await saveRestaurante();
+    try {
+      // Copias locales para actualizar con las nuevas URLs
+      let updatedGaleria = [...galeria];
+      let updatedMenuItems = [...menuItems];
 
-    if (success) {
-      showMessage('success', 'Publicado correctamente');
-      setTimeout(refreshIframe, 500);
-    } else {
-      showMessage('error', 'Error al guardar');
+      // Primero subir archivos pendientes si hay
+      if (hasPendingFiles) {
+        showMessage('info', `Subiendo ${pendingCount} imagen(es)...`);
+
+        const uploadedUrls = await uploadAllPending((uploaded, total) => {
+          console.log(`Subido ${uploaded}/${total}`);
+        });
+
+        // Actualizar las URLs en las copias locales Y en el estado
+        for (const [id, newUrl] of uploadedUrls) {
+          if (id.startsWith('galeria-')) {
+            const galeriaId = id.replace('galeria-', '');
+            // Actualizar copia local
+            updatedGaleria = updatedGaleria.map(g =>
+              g.id === galeriaId ? { ...g, url: newUrl } : g
+            );
+            // Actualizar estado para la UI
+            updateGaleriaItem(galeriaId, 'url', newUrl);
+          } else if (id.startsWith('menu-')) {
+            const menuId = id.replace('menu-', '');
+            // Actualizar copia local
+            updatedMenuItems = updatedMenuItems.map(m =>
+              m.id === menuId ? { ...m, imagen_url: newUrl } : m
+            );
+            // Actualizar estado para la UI
+            updateMenuItem(menuId, 'imagen_url', newUrl);
+          }
+        }
+      }
+
+      // Guardar con los datos actualizados
+      const success = await saveRestaurante({
+        galeria: updatedGaleria,
+        menuItems: updatedMenuItems
+      });
+
+      if (success) {
+        showMessage('success', 'Publicado correctamente');
+        setTimeout(refreshIframe, 500);
+      } else {
+        showMessage('error', 'Error al guardar');
+      }
+    } catch (error) {
+      console.error('Error publishing:', error);
+      showMessage('error', 'Error al publicar');
     }
 
     setSaving(false);
@@ -268,6 +322,9 @@ export default function AdminEditor() {
                   onRefresh={refreshIframe}
                   promptText={promptText}
                   confirmDelete={confirmDelete}
+                  addPendingFile={addPendingFile}
+                  removePendingFile={removePendingFile}
+                  isPending={isPending}
                 />
               )}
 
@@ -282,6 +339,9 @@ export default function AdminEditor() {
                   onRefresh={refreshIframe}
                   promptUrl={promptUrl}
                   confirmDelete={confirmDelete}
+                  addPendingFile={addPendingFile}
+                  removePendingFile={removePendingFile}
+                  isPending={isPending}
                 />
               )}
 

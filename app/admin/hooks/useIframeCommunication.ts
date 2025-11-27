@@ -121,14 +121,57 @@ export function useIframeCommunication(options: UseIframeCommunicationOptions = 
     sendToIframe('restaurante', data as unknown as Record<string, unknown>);
   }, [sendToIframe]);
 
-  // Enviar datos de menu
-  const sendMenuData = useCallback((categorias: RestauranteMenuCategoria[], items: RestauranteMenuItem[]) => {
-    sendToIframe('menu', { categorias, items });
+  // Enviar datos de menu (convierte blob URLs a data URLs para el iframe)
+  const sendMenuData = useCallback(async (categorias: RestauranteMenuCategoria[], items: RestauranteMenuItem[]) => {
+    // Convertir blob URLs a data URLs para que funcionen en el iframe
+    const processedItems = await Promise.all(
+      items.map(async (item) => {
+        if (item.imagen_url?.startsWith('blob:')) {
+          try {
+            const response = await fetch(item.imagen_url);
+            const blob = await response.blob();
+            return new Promise<RestauranteMenuItem>((resolve) => {
+              const reader = new FileReader();
+              reader.onloadend = () => {
+                resolve({ ...item, imagen_url: reader.result as string });
+              };
+              reader.readAsDataURL(blob);
+            });
+          } catch {
+            return item;
+          }
+        }
+        return item;
+      })
+    );
+    sendToIframe('menu', { categorias, items: processedItems });
   }, [sendToIframe]);
 
-  // Enviar datos de galeria
-  const sendGaleriaData = useCallback((items: SitioGaleria[]) => {
-    sendToIframe('galeria', { items });
+  // Enviar datos de galeria (convierte blob URLs a data URLs para el iframe)
+  const sendGaleriaData = useCallback(async (items: SitioGaleria[]) => {
+    // Convertir blob URLs a data URLs para que funcionen en el iframe
+    const processedItems = await Promise.all(
+      items.map(async (item) => {
+        if (item.url?.startsWith('blob:')) {
+          try {
+            const response = await fetch(item.url);
+            const blob = await response.blob();
+            return new Promise<SitioGaleria>((resolve) => {
+              const reader = new FileReader();
+              reader.onloadend = () => {
+                resolve({ ...item, url: reader.result as string });
+              };
+              reader.readAsDataURL(blob);
+            });
+          } catch {
+            // Si falla, devolver el item sin cambios
+            return item;
+          }
+        }
+        return item;
+      })
+    );
+    sendToIframe('galeria', { items: processedItems });
   }, [sendToIframe]);
 
   // Enviar datos de features

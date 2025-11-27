@@ -14,3 +14,4 @@ export {
 } from './useIframeCommunication';
 export * from './useAdminUI';
 export * from './useDialog';
+export * from './usePendingFiles';
