@@ -1,8 +1,10 @@
 'use client';
 
-import React from 'react';
-import { Plus, Trash2, Eye, RefreshCw, Image } from 'lucide-react';
+import React, { useState } from 'react';
+import { Trash2, Eye, RefreshCw, Image, ChevronDown, ChevronUp } from 'lucide-react';
 import { SitioGaleria } from '@/lib/database.types';
+import { ImageUploader } from '../ui/ImageUploader';
+import { deleteImage, isSupabaseStorageUrl } from '@/lib/storage';
 
 interface GaleriaTabProps {
   sitio: { id: string } | null;
@@ -25,21 +27,40 @@ export function GaleriaTab({
   onUpdateItem,
   onDeleteItem,
   onRefresh,
-  promptUrl,
   confirmDelete
 }: GaleriaTabProps) {
-  const handleAddItem = async () => {
-    const url = await promptUrl('Nueva imagen');
+  const [newImageUrl, setNewImageUrl] = useState('');
+  const [expandedItem, setExpandedItem] = useState<string | null>(null);
+
+  // Cuando se sube/selecciona una imagen nueva
+  const handleNewImage = async (url: string) => {
     if (url) {
-      await onAddItem(url);
+      const success = await onAddItem(url);
+      if (success) {
+        setNewImageUrl('');
+      }
     }
   };
 
+  // Eliminar imagen de la galeria y del storage
   const handleDeleteItem = async (item: SitioGaleria) => {
     const confirmed = await confirmDelete(item.titulo || 'esta imagen');
     if (confirmed) {
+      // Si es una imagen del storage, eliminarla tambien
+      if (isSupabaseStorageUrl(item.url)) {
+        await deleteImage(item.url);
+      }
       await onDeleteItem(item.id);
     }
+  };
+
+  // Cambiar imagen de un item existente
+  const handleImageChange = async (item: SitioGaleria, newUrl: string) => {
+    // Si la imagen anterior era del storage y la nueva es diferente, eliminar la anterior
+    if (item.url && isSupabaseStorageUrl(item.url) && newUrl !== item.url) {
+      await deleteImage(item.url);
+    }
+    onUpdateItem(item.id, 'url', newUrl);
   };
 
   return (
@@ -50,23 +71,30 @@ export function GaleriaTab({
         </div>
       )}
 
-      <button
-        onClick={handleAddItem}
-        disabled={!sitio}
-        className={`neuro-btn w-full flex items-center justify-center gap-2 text-sm ${!sitio ? 'opacity-50 cursor-not-allowed' : ''}`}
-      >
-        <Plus className="w-4 h-4" />
-        Agregar imagen
-      </button>
+      {/* Agregar nueva imagen */}
+      {sitio && (
+        <div className="neuro-card-sm p-4 space-y-3">
+          <h4 className="text-sm font-medium text-gray-700">Agregar imagen</h4>
+          <ImageUploader
+            value={newImageUrl}
+            onChange={handleNewImage}
+            onDelete={() => setNewImageUrl('')}
+            folder="galeria"
+            placeholder="Arrastra una imagen o haz clic para seleccionar"
+          />
+        </div>
+      )}
 
+      {/* Lista de imagenes */}
       <div className="space-y-3">
         {galeria.map(img => (
-          <div key={img.id} className="neuro-card-sm p-3 space-y-2">
-            <div className="flex gap-3">
-              <div className="w-20 h-20 rounded-lg overflow-hidden neuro-inset flex-shrink-0">
+          <div key={img.id} className="neuro-card-sm overflow-hidden">
+            {/* Header con preview y acciones rapidas */}
+            <div className="p-3 flex items-center gap-3">
+              <div className="w-16 h-16 rounded-lg overflow-hidden neuro-inset flex-shrink-0">
                 <img src={img.url} alt="" className="w-full h-full object-cover" />
               </div>
-              <div className="flex-1 space-y-2">
+              <div className="flex-1 min-w-0">
                 <input
                   type="text"
                   value={img.titulo || ''}
@@ -74,34 +102,59 @@ export function GaleriaTab({
                   className="neuro-input text-sm w-full"
                   placeholder="Titulo de la imagen"
                 />
-                <input
-                  type="text"
-                  value={img.url}
-                  onChange={(e) => onUpdateItem(img.id, 'url', e.target.value)}
-                  className="neuro-input text-xs w-full font-mono"
-                  placeholder="URL de la imagen"
-                />
+                <div className="flex items-center gap-2 mt-2">
+                  <button
+                    onClick={() => onToggleHome(img.id, img.es_home)}
+                    className={`text-xs px-2 py-1 rounded-lg flex items-center gap-1 cursor-pointer transition-colors ${
+                      img.es_home
+                        ? 'bg-[#d4af37] text-white'
+                        : 'neuro-flat text-gray-600 hover:text-gray-800'
+                    }`}
+                  >
+                    <Eye className="w-3 h-3" />
+                    {img.es_home ? 'En Home' : 'Mostrar'}
+                  </button>
+                  {isSupabaseStorageUrl(img.url) && (
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                      Storage
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-col gap-1">
+                <button
+                  onClick={() => setExpandedItem(expandedItem === img.id ? null : img.id)}
+                  className="p-1.5 rounded-lg neuro-flat text-gray-500 hover:text-gray-700"
+                  title="Editar imagen"
+                >
+                  {expandedItem === img.id ? (
+                    <ChevronUp className="w-4 h-4" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4" />
+                  )}
+                </button>
+                <button
+                  onClick={() => handleDeleteItem(img)}
+                  className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50"
+                  title="Eliminar"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
             </div>
-            <div className="flex items-center justify-between">
-              <button
-                onClick={() => onToggleHome(img.id, img.es_home)}
-                className={`text-xs px-3 py-1 rounded-lg flex items-center gap-1 cursor-pointer ${
-                  img.es_home
-                    ? 'bg-[#d4af37] text-white'
-                    : 'neuro-flat text-gray-600'
-                }`}
-              >
-                <Eye className="w-3 h-3" />
-                {img.es_home ? 'Visible en Home' : 'Mostrar en Home'}
-              </button>
-              <button
-                onClick={() => handleDeleteItem(img)}
-                className="text-red-400 hover:text-red-600 p-1 cursor-pointer"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
+
+            {/* Panel expandible para cambiar imagen */}
+            {expandedItem === img.id && (
+              <div className="px-3 pb-3 pt-0 border-t border-gray-100 animate-fadeIn">
+                <p className="text-xs text-gray-500 mb-2 pt-3">Cambiar imagen:</p>
+                <ImageUploader
+                  value={img.url}
+                  onChange={(url) => handleImageChange(img, url)}
+                  folder="galeria"
+                  showUrlInput={true}
+                />
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -110,7 +163,7 @@ export function GaleriaTab({
         <div className="neuro-card-sm p-8 text-center">
           <Image className="w-12 h-12 mx-auto mb-3 text-gray-300" />
           <p className="text-gray-500 mb-2">No hay imagenes en la galeria</p>
-          <p className="text-gray-400 text-xs">Haz clic en "Agregar imagen" para comenzar</p>
+          <p className="text-gray-400 text-xs">Sube tu primera imagen usando el area de arriba</p>
         </div>
       )}
 

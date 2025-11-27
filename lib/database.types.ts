@@ -94,10 +94,10 @@ export interface SitioReserva {
 }
 
 // ============================================
-// TABLAS ESPECÍFICAS: RESTAURANTE
+// TABLAS DE MENU (genéricas para cualquier tipo de sitio)
 // ============================================
 
-export interface RestauranteMenuCategoria {
+export interface SitioMenuCategoria {
   id: string;
   sitio_id: string;
   nombre: string;
@@ -106,7 +106,7 @@ export interface RestauranteMenuCategoria {
   created_at: string;
 }
 
-export interface RestauranteMenuItem {
+export interface SitioMenuItem {
   id: string;
   sitio_id: string;
   categoria_id: string | null;
@@ -121,6 +121,12 @@ export interface RestauranteMenuItem {
   created_at: string;
   updated_at: string;
 }
+
+// Aliases para compatibilidad (deprecated, usar SitioMenu*)
+/** @deprecated Use SitioMenuCategoria instead */
+export type RestauranteMenuCategoria = SitioMenuCategoria;
+/** @deprecated Use SitioMenuItem instead */
+export type RestauranteMenuItem = SitioMenuItem;
 
 // ============================================
 // TIPOS DE TEXTOS POR PÁGINA
@@ -190,8 +196,8 @@ export interface RestauranteData {
     reservas: TextosReservas;
     contacto: TextosContacto;
   };
-  categorias: RestauranteMenuCategoria[];
-  menuItems: RestauranteMenuItem[];
+  categorias: SitioMenuCategoria[];
+  menuItems: SitioMenuItem[];
   galeria: SitioGaleria[];
   galeriaHome: SitioGaleria[];
   features: SitioFeature[];
@@ -207,8 +213,14 @@ export type SitioTextosInsert = Omit<SitioTextos, 'id' | 'created_at' | 'updated
 export type SitioGaleriaInsert = Omit<SitioGaleria, 'id' | 'created_at'>;
 export type SitioFeatureInsert = Omit<SitioFeature, 'id' | 'created_at'>;
 export type SitioReservaInsert = Omit<SitioReserva, 'id' | 'created_at'>;
-export type RestauranteMenuCategoriaInsert = Omit<RestauranteMenuCategoria, 'id' | 'created_at'>;
-export type RestauranteMenuItemInsert = Omit<RestauranteMenuItem, 'id' | 'created_at' | 'updated_at'>;
+export type SitioMenuCategoriaInsert = Omit<SitioMenuCategoria, 'id' | 'created_at'>;
+export type SitioMenuItemInsert = Omit<SitioMenuItem, 'id' | 'created_at' | 'updated_at'>;
+
+// Aliases deprecated
+/** @deprecated Use SitioMenuCategoriaInsert instead */
+export type RestauranteMenuCategoriaInsert = SitioMenuCategoriaInsert;
+/** @deprecated Use SitioMenuItemInsert instead */
+export type RestauranteMenuItemInsert = SitioMenuItemInsert;
 
 // ============================================
 // TIPOS PARA UPDATE (parciales)
@@ -218,8 +230,14 @@ export type SitioUpdate = Partial<Omit<Sitio, 'id' | 'created_at'>>;
 export type SitioConfigUpdate = Partial<Omit<SitioConfig, 'id' | 'sitio_id' | 'created_at'>>;
 export type SitioGaleriaUpdate = Partial<Omit<SitioGaleria, 'id' | 'sitio_id' | 'created_at'>>;
 export type SitioFeatureUpdate = Partial<Omit<SitioFeature, 'id' | 'sitio_id' | 'created_at'>>;
-export type RestauranteMenuCategoriaUpdate = Partial<Omit<RestauranteMenuCategoria, 'id' | 'sitio_id' | 'created_at'>>;
-export type RestauranteMenuItemUpdate = Partial<Omit<RestauranteMenuItem, 'id' | 'sitio_id' | 'created_at'>>;
+export type SitioMenuCategoriaUpdate = Partial<Omit<SitioMenuCategoria, 'id' | 'sitio_id' | 'created_at'>>;
+export type SitioMenuItemUpdate = Partial<Omit<SitioMenuItem, 'id' | 'sitio_id' | 'created_at'>>;
+
+// Aliases deprecated
+/** @deprecated Use SitioMenuCategoriaUpdate instead */
+export type RestauranteMenuCategoriaUpdate = SitioMenuCategoriaUpdate;
+/** @deprecated Use SitioMenuItemUpdate instead */
+export type RestauranteMenuItemUpdate = SitioMenuItemUpdate;
 
 // ============================================
 // TABLA INDEPENDIENTE (leads de marketing)

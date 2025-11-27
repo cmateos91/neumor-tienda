@@ -6,8 +6,8 @@ import {
   SitioGaleria,
   SitioFeature,
   SitioReserva,
-  RestauranteMenuCategoria,
-  RestauranteMenuItem,
+  SitioMenuCategoria,
+  SitioMenuItem,
   RestauranteData,
   TextosInicio,
   TextosMenu,
@@ -23,8 +23,8 @@ import {
   SitioConfigUpdate,
   SitioGaleriaInsert,
   SitioFeatureInsert,
-  RestauranteMenuCategoriaInsert,
-  RestauranteMenuItemInsert
+  SitioMenuCategoriaInsert,
+  SitioMenuItemInsert
 } from './database.types';
 
 // ============================================
@@ -158,11 +158,11 @@ export async function getSitioReservas(sitioId: string): Promise<SitioReserva[]>
 // ============================================
 
 /**
- * Obtiene las categorías del menú de un restaurante
+ * Obtiene las categorías del menú de un sitio
  */
-export async function getMenuCategorias(sitioId: string): Promise<RestauranteMenuCategoria[]> {
+export async function getMenuCategorias(sitioId: string): Promise<SitioMenuCategoria[]> {
   const { data } = await supabase
-    .from('restaurante_menu_categorias')
+    .from('sitio_menu_categorias')
     .select('*')
     .eq('sitio_id', sitioId)
     .order('orden');
@@ -170,11 +170,11 @@ export async function getMenuCategorias(sitioId: string): Promise<RestauranteMen
 }
 
 /**
- * Obtiene los items del menú de un restaurante
+ * Obtiene los items del menú de un sitio
  */
-export async function getMenuItems(sitioId: string, soloDisponibles = true): Promise<RestauranteMenuItem[]> {
+export async function getMenuItems(sitioId: string, soloDisponibles = true): Promise<SitioMenuItem[]> {
   let query = supabase
-    .from('restaurante_menu_items')
+    .from('sitio_menu_items')
     .select('*')
     .eq('sitio_id', sitioId);
 
@@ -410,10 +410,10 @@ export async function eliminarFeature(featureId: string): Promise<boolean> {
 // ============================================
 
 export async function agregarMenuCategoria(
-  categoria: RestauranteMenuCategoriaInsert
-): Promise<RestauranteMenuCategoria | null> {
+  categoria: SitioMenuCategoriaInsert
+): Promise<SitioMenuCategoria | null> {
   const { data, error } = await supabase
-    .from('restaurante_menu_categorias')
+    .from('sitio_menu_categorias')
     .insert(categoria)
     .select()
     .single();
@@ -428,10 +428,10 @@ export async function agregarMenuCategoria(
 
 export async function actualizarMenuCategoria(
   categoriaId: string,
-  updates: Partial<RestauranteMenuCategoria>
+  updates: Partial<SitioMenuCategoria>
 ): Promise<boolean> {
   const { error } = await supabase
-    .from('restaurante_menu_categorias')
+    .from('sitio_menu_categorias')
     .update(updates)
     .eq('id', categoriaId);
 
@@ -440,7 +440,7 @@ export async function actualizarMenuCategoria(
 
 export async function eliminarMenuCategoria(categoriaId: string): Promise<boolean> {
   const { error } = await supabase
-    .from('restaurante_menu_categorias')
+    .from('sitio_menu_categorias')
     .delete()
     .eq('id', categoriaId);
 
@@ -448,10 +448,10 @@ export async function eliminarMenuCategoria(categoriaId: string): Promise<boolea
 }
 
 export async function agregarMenuItem(
-  item: RestauranteMenuItemInsert
-): Promise<RestauranteMenuItem | null> {
+  item: SitioMenuItemInsert
+): Promise<SitioMenuItem | null> {
   const { data, error } = await supabase
-    .from('restaurante_menu_items')
+    .from('sitio_menu_items')
     .insert(item)
     .select()
     .single();
@@ -466,10 +466,10 @@ export async function agregarMenuItem(
 
 export async function actualizarMenuItem(
   itemId: string,
-  updates: Partial<RestauranteMenuItem>
+  updates: Partial<SitioMenuItem>
 ): Promise<boolean> {
   const { error } = await supabase
-    .from('restaurante_menu_items')
+    .from('sitio_menu_items')
     .update({ ...updates, updated_at: new Date().toISOString() })
     .eq('id', itemId);
 
@@ -478,7 +478,7 @@ export async function actualizarMenuItem(
 
 export async function eliminarMenuItem(itemId: string): Promise<boolean> {
   const { error } = await supabase
-    .from('restaurante_menu_items')
+    .from('sitio_menu_items')
     .delete()
     .eq('id', itemId);
 

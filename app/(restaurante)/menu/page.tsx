@@ -57,12 +57,12 @@ export default function Menu() {
         // Cargar categorías y items en paralelo
         const [catRes, itemsRes] = await Promise.all([
           supabase
-            .from('restaurante_menu_categorias')
+            .from('sitio_menu_categorias')
             .select('*')
             .eq('sitio_id', sitio.id)
             .order('orden'),
           supabase
-            .from('restaurante_menu_items')
+            .from('sitio_menu_items')
             .select('*')
             .eq('sitio_id', sitio.id)
             .eq('disponible', true)

@@ -51,8 +51,8 @@ export default function AdminMenu() {
 
         // Cargar categorias e items
         const [catRes, itemRes] = await Promise.all([
-          supabase.from('restaurante_menu_categorias').select('*').eq('sitio_id', sitio.id).order('orden'),
-          supabase.from('restaurante_menu_items').select('*').eq('sitio_id', sitio.id).order('orden')
+          supabase.from('sitio_menu_categorias').select('*').eq('sitio_id', sitio.id).order('orden'),
+          supabase.from('sitio_menu_items').select('*').eq('sitio_id', sitio.id).order('orden')
         ]);
 
         if (catRes.data) setCategorias(catRes.data);
@@ -83,11 +83,11 @@ export default function AdminMenu() {
     try {
       if (editingCategoria) {
         await supabase
-          .from('restaurante_menu_categorias')
+          .from('sitio_menu_categorias')
           .update({ nombre: categoriaForm.nombre, orden: categoriaForm.orden })
           .eq('id', editingCategoria.id);
       } else {
-        await supabase.from('restaurante_menu_categorias').insert({
+        await supabase.from('sitio_menu_categorias').insert({
           sitio_id: sitioId,
           nombre: categoriaForm.nombre,
           orden: categoriaForm.orden
@@ -105,8 +105,8 @@ export default function AdminMenu() {
 
     try {
       // Eliminar items de la categoria primero
-      await supabase.from('restaurante_menu_items').delete().eq('categoria_id', id);
-      await supabase.from('restaurante_menu_categorias').delete().eq('id', id);
+      await supabase.from('sitio_menu_items').delete().eq('categoria_id', id);
+      await supabase.from('sitio_menu_categorias').delete().eq('id', id);
       loadData();
     } catch (error) {
       console.error('Error eliminando categoria:', error);
@@ -154,11 +154,11 @@ export default function AdminMenu() {
     try {
       if (editingItem) {
         await supabase
-          .from('restaurante_menu_items')
+          .from('sitio_menu_items')
           .update(itemForm)
           .eq('id', editingItem.id);
       } else {
-        await supabase.from('restaurante_menu_items').insert(itemForm);
+        await supabase.from('sitio_menu_items').insert(itemForm);
       }
       setShowItemModal(false);
       loadData();
@@ -171,7 +171,7 @@ export default function AdminMenu() {
     if (!confirm('Eliminar este item?')) return;
 
     try {
-      await supabase.from('restaurante_menu_items').delete().eq('id', id);
+      await supabase.from('sitio_menu_items').delete().eq('id', id);
       loadData();
     } catch (error) {
       console.error('Error eliminando item:', error);
@@ -181,7 +181,7 @@ export default function AdminMenu() {
   const toggleDisponible = async (item: RestauranteMenuItem) => {
     try {
       await supabase
-        .from('restaurante_menu_items')
+        .from('sitio_menu_items')
         .update({ disponible: !item.disponible })
         .eq('id', item.id);
       loadData();

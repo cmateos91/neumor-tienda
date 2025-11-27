@@ -1,8 +1,10 @@
 'use client';
 
-import React from 'react';
-import { Plus, Trash2, Eye, EyeOff, RefreshCw, UtensilsCrossed } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, Trash2, Eye, EyeOff, RefreshCw, UtensilsCrossed, ChevronDown, ChevronUp } from 'lucide-react';
 import { RestauranteMenuCategoria, RestauranteMenuItem } from '@/lib/database.types';
+import { ImageUploader } from '../ui/ImageUploader';
+import { deleteImage, isSupabaseStorageUrl } from '@/lib/storage';
 
 interface MenuTabProps {
   sitio: { id: string } | null;
@@ -30,6 +32,8 @@ export function MenuTab({
   promptText,
   confirmDelete
 }: MenuTabProps) {
+  const [expandedItem, setExpandedItem] = useState<string | null>(null);
+
   const handleAddCategoria = async () => {
     const nombre = await promptText('Nueva categoria', 'Nombre de la categoria');
     if (nombre) {
@@ -40,8 +44,21 @@ export function MenuTab({
   const handleDeleteMenuItem = async (item: RestauranteMenuItem) => {
     const confirmed = await confirmDelete(item.nombre);
     if (confirmed) {
+      // Si tiene imagen del storage, eliminarla
+      if (item.imagen_url && isSupabaseStorageUrl(item.imagen_url)) {
+        await deleteImage(item.imagen_url);
+      }
       await onDeleteMenuItem(item.id);
     }
+  };
+
+  // Cambiar imagen de un item
+  const handleImageChange = async (item: RestauranteMenuItem, newUrl: string) => {
+    // Si la imagen anterior era del storage y la nueva es diferente, eliminar la anterior
+    if (item.imagen_url && isSupabaseStorageUrl(item.imagen_url) && newUrl !== item.imagen_url) {
+      await deleteImage(item.imagen_url);
+    }
+    onUpdateMenuItem(item.id, 'imagen_url', newUrl);
   };
 
   return (
@@ -68,6 +85,7 @@ export function MenuTab({
             <button
               onClick={() => onAddMenuItem(cat.id)}
               className="text-[#d4af37] hover:text-[#b8962f] cursor-pointer"
+              title="Agregar item"
             >
               <Plus className="w-4 h-4" />
             </button>
@@ -75,10 +93,19 @@ export function MenuTab({
           <div className="divide-y divide-gray-200/50">
             {menuItems.filter(i => i.categoria_id === cat.id).map(item => (
               <div key={item.id} className="px-4 py-3 space-y-2">
+                {/* Fila principal */}
                 <div className="flex items-center gap-2">
-                  {item.imagen_url && (
-                    <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0 neuro-inset">
+                  {/* Preview de imagen */}
+                  {item.imagen_url ? (
+                    <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0 neuro-inset relative group">
                       <img src={item.imagen_url} alt="" className="w-full h-full object-cover" />
+                      {isSupabaseStorageUrl(item.imagen_url) && (
+                        <div className="absolute inset-0 bg-green-500/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      )}
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 rounded flex-shrink-0 neuro-inset flex items-center justify-center">
+                      <UtensilsCrossed className="w-4 h-4 text-gray-300" />
                     </div>
                   )}
                   <input
@@ -86,28 +113,47 @@ export function MenuTab({
                     value={item.nombre}
                     onChange={(e) => onUpdateMenuItem(item.id, 'nombre', e.target.value)}
                     className="neuro-input text-sm flex-1"
+                    placeholder="Nombre del plato"
                   />
                   <button
                     onClick={() => onUpdateMenuItem(item.id, 'disponible', !item.disponible)}
-                    className={`cursor-pointer ${item.disponible ? 'text-green-500' : 'text-gray-400'}`}
+                    className={`cursor-pointer p-1 ${item.disponible ? 'text-green-500' : 'text-gray-400'}`}
+                    title={item.disponible ? 'Disponible' : 'No disponible'}
                   >
                     {item.disponible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                   </button>
                   <button
+                    onClick={() => setExpandedItem(expandedItem === item.id ? null : item.id)}
+                    className="p-1 text-gray-400 hover:text-gray-600"
+                    title="Mas opciones"
+                  >
+                    {expandedItem === item.id ? (
+                      <ChevronUp className="w-4 h-4" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4" />
+                    )}
+                  </button>
+                  <button
                     onClick={() => handleDeleteMenuItem(item)}
-                    className="text-red-400 hover:text-red-600 cursor-pointer"
+                    className="text-red-400 hover:text-red-600 cursor-pointer p-1"
+                    title="Eliminar"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
-                <div className="flex gap-2 pl-6">
-                  <input
-                    type="number"
-                    value={item.precio}
-                    onChange={(e) => onUpdateMenuItem(item.id, 'precio', parseFloat(e.target.value) || 0)}
-                    className="neuro-input text-sm w-20"
-                    placeholder="Precio"
-                  />
+
+                {/* Precio y descripcion */}
+                <div className="flex gap-2 pl-12">
+                  <div className="relative">
+                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                    <input
+                      type="number"
+                      value={item.precio}
+                      onChange={(e) => onUpdateMenuItem(item.id, 'precio', parseFloat(e.target.value) || 0)}
+                      className="neuro-input text-sm w-24 pl-5"
+                      placeholder="0.00"
+                    />
+                  </div>
                   <input
                     type="text"
                     value={item.descripcion || ''}
@@ -116,17 +162,28 @@ export function MenuTab({
                     placeholder="Descripcion"
                   />
                 </div>
-                <div className="pl-6">
-                  <input
-                    type="text"
-                    value={item.imagen_url || ''}
-                    onChange={(e) => onUpdateMenuItem(item.id, 'imagen_url', e.target.value)}
-                    className="neuro-input text-xs w-full font-mono"
-                    placeholder="URL de imagen (opcional)"
-                  />
-                </div>
+
+                {/* Panel expandido con imagen */}
+                {expandedItem === item.id && (
+                  <div className="pl-12 pt-2 animate-fadeIn">
+                    <p className="text-xs text-gray-500 mb-2">Imagen del plato (opcional):</p>
+                    <ImageUploader
+                      value={item.imagen_url || ''}
+                      onChange={(url) => handleImageChange(item, url)}
+                      onDelete={() => handleImageChange(item, '')}
+                      folder="menu"
+                      placeholder="Arrastra una imagen o haz clic"
+                      showUrlInput={true}
+                    />
+                  </div>
+                )}
               </div>
             ))}
+            {menuItems.filter(i => i.categoria_id === cat.id).length === 0 && (
+              <div className="px-4 py-6 text-center text-gray-400 text-sm">
+                Sin items. Haz clic en + para agregar.
+              </div>
+            )}
           </div>
         </div>
       ))}

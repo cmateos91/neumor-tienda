@@ -6,8 +6,8 @@ import {
   Sitio,
   SitioConfig,
   SitioTextos,
-  RestauranteMenuCategoria,
-  RestauranteMenuItem,
+  SitioMenuCategoria,
+  SitioMenuItem,
   SitioGaleria,
   SitioFeature
 } from '@/lib/database.types';
@@ -112,8 +112,8 @@ export interface SitioDataState {
   sitio: Sitio | null;
   sitioConfig: SitioConfig | null;
   sitioTextos: Record<string, Record<string, string>>;
-  categorias: RestauranteMenuCategoria[];
-  menuItems: RestauranteMenuItem[];
+  categorias: SitioMenuCategoria[];
+  menuItems: SitioMenuItem[];
   galeria: SitioGaleria[];
   features: SitioFeature[];
   formRestaurante: FormRestaurante;
@@ -125,8 +125,8 @@ export interface SitioDataState {
 export interface SitioDataActions {
   loadAllData: () => Promise<void>;
   setFormRestaurante: React.Dispatch<React.SetStateAction<FormRestaurante>>;
-  setCategorias: React.Dispatch<React.SetStateAction<RestauranteMenuCategoria[]>>;
-  setMenuItems: React.Dispatch<React.SetStateAction<RestauranteMenuItem[]>>;
+  setCategorias: React.Dispatch<React.SetStateAction<SitioMenuCategoria[]>>;
+  setMenuItems: React.Dispatch<React.SetStateAction<SitioMenuItem[]>>;
   setGaleria: React.Dispatch<React.SetStateAction<SitioGaleria[]>>;
   setFeatures: React.Dispatch<React.SetStateAction<SitioFeature[]>>;
   saveRestaurante: () => Promise<boolean>;
@@ -150,8 +150,8 @@ export function useSitioData(): UseSitioDataReturn {
   const [sitio, setSitio] = useState<Sitio | null>(null);
   const [sitioConfig, setSitioConfig] = useState<SitioConfig | null>(null);
   const [sitioTextos, setSitioTextos] = useState<Record<string, Record<string, string>>>({});
-  const [categorias, setCategorias] = useState<RestauranteMenuCategoria[]>([]);
-  const [menuItems, setMenuItems] = useState<RestauranteMenuItem[]>([]);
+  const [categorias, setCategorias] = useState<SitioMenuCategoria[]>([]);
+  const [menuItems, setMenuItems] = useState<SitioMenuItem[]>([]);
   const [galeria, setGaleria] = useState<SitioGaleria[]>([]);
   const [features, setFeatures] = useState<SitioFeature[]>([]);
   const [formRestaurante, setFormRestaurante] = useState<FormRestaurante>(defaultFormRestaurante);
@@ -251,8 +251,8 @@ export function useSitioData(): UseSitioDataReturn {
 
         // Cargar datos especificos del restaurante en paralelo
         const [catRes, itemsRes, galRes, featRes] = await Promise.all([
-          supabase.from('restaurante_menu_categorias').select('*').eq('sitio_id', sitioData.id).order('orden'),
-          supabase.from('restaurante_menu_items').select('*').eq('sitio_id', sitioData.id).order('orden'),
+          supabase.from('sitio_menu_categorias').select('*').eq('sitio_id', sitioData.id).order('orden'),
+          supabase.from('sitio_menu_items').select('*').eq('sitio_id', sitioData.id).order('orden'),
           supabase.from('sitio_galeria').select('*').eq('sitio_id', sitioData.id).order('orden'),
           supabase.from('sitio_features').select('*').eq('sitio_id', sitioData.id).order('orden')
         ]);
@@ -369,7 +369,7 @@ export function useSitioData(): UseSitioDataReturn {
       // Guardar items del menu en paralelo
       await Promise.all(menuItems.map(item =>
         supabase
-          .from('restaurante_menu_items')
+          .from('sitio_menu_items')
           .update({
             nombre: item.nombre,
             descripcion: item.descripcion,
@@ -421,7 +421,7 @@ export function useSitioData(): UseSitioDataReturn {
     if (!sitio || !nombre) return false;
 
     try {
-      const { error } = await supabase.from('restaurante_menu_categorias').insert({
+      const { error } = await supabase.from('sitio_menu_categorias').insert({
         sitio_id: sitio.id,
         nombre,
         orden: categorias.length
@@ -440,7 +440,7 @@ export function useSitioData(): UseSitioDataReturn {
     if (!sitio) return false;
 
     try {
-      const { error } = await supabase.from('restaurante_menu_items').insert({
+      const { error } = await supabase.from('sitio_menu_items').insert({
         sitio_id: sitio.id,
         categoria_id: categoriaId,
         nombre: 'Nuevo plato',
@@ -467,7 +467,7 @@ export function useSitioData(): UseSitioDataReturn {
 
   const deleteMenuItem = useCallback(async (id: string): Promise<boolean> => {
     try {
-      await supabase.from('restaurante_menu_items').delete().eq('id', id);
+      await supabase.from('sitio_menu_items').delete().eq('id', id);
       await loadAllData();
       return true;
     } catch (err) {
