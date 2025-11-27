@@ -34,6 +34,23 @@ export const deviceWidths: Record<Device, string> = {
   mobile: '375px'
 };
 
+// Mapeo de tabs a páginas del iframe
+export const tabToPage: Record<Tab, string> = {
+  restaurante: '/',
+  menu: '/menu',
+  galeria: '/galeria',
+  features: '/'
+};
+
+// Mapeo de páginas a tabs (inverso)
+export const pageToTab: Record<string, Tab> = {
+  '/': 'restaurante',
+  '/menu': 'menu',
+  '/galeria': 'galeria',
+  '/reservas': 'restaurante',
+  '/contacto': 'restaurante'
+};
+
 // Interface para el estado del hook
 export interface AdminUIState {
   activeTab: Tab;

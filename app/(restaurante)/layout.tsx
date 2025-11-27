@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, UtensilsCrossed } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import '@/app/_styles/neumorph-restaurant.css';
@@ -30,6 +30,7 @@ const defaultData: LayoutData = {
 export default function RestaurantLayout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const [data, setData] = useState<LayoutData>(defaultData);
 
   // Cargar datos iniciales de Supabase (nuevo schema)
@@ -72,6 +73,15 @@ export default function RestaurantLayout({ children }: { children: React.ReactNo
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
 
+      // Navegación SPA desde el admin
+      if (event.data?.type === 'admin:navigate') {
+        const targetPath = event.data.data?.path;
+        if (targetPath && targetPath !== pathname) {
+          router.push(targetPath);
+        }
+        return;
+      }
+
       if (event.data?.type === 'admin:config') {
         const msg = event.data.data;
         setData(prev => ({
@@ -88,7 +98,18 @@ export default function RestaurantLayout({ children }: { children: React.ReactNo
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, []);
+  }, [pathname, router]);
+
+  // Notificar al admin cuando cambia la ruta (para sincronizar tabs)
+  useEffect(() => {
+    // Solo enviar si estamos en un iframe
+    if (window.parent !== window) {
+      window.parent.postMessage(
+        { type: 'iframe:navigate', data: { path: pathname } },
+        window.location.origin
+      );
+    }
+  }, [pathname]);
 
   const navItems = [
     { name: 'Inicio', path: '/' },

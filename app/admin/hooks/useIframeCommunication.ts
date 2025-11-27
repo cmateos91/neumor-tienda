@@ -62,6 +62,7 @@ export interface IframeEventHandlers {
   onElementClick?: (elementId: string, nav: ElementNavigation) => void;
   onLayoutChanged?: (sections: PageSection[]) => void;
   onSectionSelected?: (sectionId: string | null) => void;
+  onNavigate?: (path: string) => void;
 }
 
 // Interface para el estado del hook
@@ -76,6 +77,7 @@ export interface IframeCommunicationState {
 export interface IframeCommunicationActions {
   sendToIframe: (type: IframeMessageType, data: Record<string, unknown>) => void;
   refreshIframe: () => void;
+  navigateIframe: (path: string) => void;
   setEditMode: (enabled: boolean) => void;
   setPageBuilderMode: (enabled: boolean) => void;
   setSelectedElement: (elementId: string | null) => void;
@@ -113,6 +115,16 @@ export function useIframeCommunication(options: UseIframeCommunicationOptions = 
   const refreshIframe = useCallback(() => {
     if (iframeRef.current) {
       iframeRef.current.src = iframeRef.current.src;
+    }
+  }, []);
+
+  // Navegar iframe usando SPA (sin recargar)
+  const navigateIframe = useCallback((path: string) => {
+    if (iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage(
+        { type: 'admin:navigate', data: { path } },
+        window.location.origin
+      );
     }
   }, []);
 
@@ -240,6 +252,14 @@ export function useIframeCommunication(options: UseIframeCommunicationOptions = 
       if (type === 'preview:section-selected') {
         eventHandlers?.onSectionSelected?.(data?.sectionId ?? null);
       }
+
+      // Navegación: el iframe notifica su ruta actual
+      if (type === 'iframe:navigate') {
+        const path = data?.path;
+        if (path) {
+          eventHandlers?.onNavigate?.(path);
+        }
+      }
     };
 
     window.addEventListener('message', handleIframeMessage);
@@ -255,6 +275,7 @@ export function useIframeCommunication(options: UseIframeCommunicationOptions = 
     // Acciones
     sendToIframe,
     refreshIframe,
+    navigateIframe,
     setEditMode,
     setPageBuilderMode,
     setSelectedElement,

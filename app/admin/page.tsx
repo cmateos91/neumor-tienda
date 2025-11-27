@@ -11,7 +11,9 @@ import {
   useDialogs,
   usePendingFiles,
   usePendingDeletes,
-  tabs
+  tabs,
+  tabToPage,
+  pageToTab
 } from './hooks';
 
 // Components
@@ -129,6 +131,7 @@ export default function AdminEditor() {
     pageBuilderMode,
     setPageBuilderMode,
     refreshIframe,
+    navigateIframe,
     sendRestauranteData,
     sendMenuData,
     sendGaleriaData,
@@ -144,6 +147,17 @@ export default function AdminEditor() {
       },
       onSectionSelected: (sectionId) => {
         setSelectedSection(sectionId);
+      },
+      onNavigate: (path) => {
+        // Actualizar el tab según la página del iframe
+        const newTab = pageToTab[path];
+        if (newTab && newTab !== activeTab) {
+          setActiveTab(newTab);
+        }
+        // También actualizar currentPage si es diferente
+        if (path !== currentPage) {
+          setCurrentPage(path);
+        }
       }
     }
   });
@@ -170,6 +184,15 @@ export default function AdminEditor() {
   useEffect(() => {
     sendFeaturesData(features);
   }, [features, sendFeaturesData]);
+
+  // Sincronizar activeTab → iframe (navegar usando SPA, sin recargar)
+  useEffect(() => {
+    const targetPage = tabToPage[activeTab];
+    if (targetPage) {
+      navigateIframe(targetPage);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   // Toggle Page Builder Mode
   const togglePageBuilderMode = () => {
