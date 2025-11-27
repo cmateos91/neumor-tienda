@@ -56,6 +56,7 @@ export default function AdminEditor() {
     deleteMenuItem,
     addGaleriaItem,
     toggleGaleriaHome,
+    toggleGaleriaVisible,
     updateGaleriaItem,
     deleteGaleriaItem,
     addFeature,
@@ -159,8 +160,10 @@ export default function AdminEditor() {
   }, [categorias, menuItems, sendMenuData, isMarkedForDeletion]);
 
   useEffect(() => {
-    // Filtrar items marcados para eliminación
-    const filteredGaleria = galeria.filter(item => !isMarkedForDeletion(item.id));
+    // Filtrar items marcados para eliminación y ocultos
+    const filteredGaleria = galeria.filter(item =>
+      !isMarkedForDeletion(item.id) && item.visible !== false
+    );
     sendGaleriaData(filteredGaleria);
   }, [galeria, sendGaleriaData, isMarkedForDeletion]);
 
@@ -277,7 +280,6 @@ export default function AdminEditor() {
       {/* Top Bar */}
       <TopBar
         currentPage={currentPage}
-        onPageChange={setCurrentPage}
         device={device}
         onDeviceChange={setDevice}
         editMode={editMode}
@@ -368,6 +370,7 @@ export default function AdminEditor() {
                   galeria={galeria}
                   onAddItem={addGaleriaItem}
                   onToggleHome={toggleGaleriaHome}
+                  onToggleVisible={toggleGaleriaVisible}
                   onUpdateItem={updateGaleriaItem}
                   onDeleteItem={deleteGaleriaItem}
                   onRefresh={refreshIframe}

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Trash2, Eye, RefreshCw, Image, ChevronDown, ChevronUp, Undo2 } from 'lucide-react';
+import { Trash2, Eye, EyeOff, RefreshCw, Image, ChevronDown, ChevronUp, Undo2 } from 'lucide-react';
 import { SitioGaleria } from '@/lib/database.types';
 import { ImageUploader } from '../ui/ImageUploader';
 import { isSupabaseStorageUrl } from '@/lib/storage';
@@ -11,6 +11,7 @@ interface GaleriaTabProps {
   galeria: SitioGaleria[];
   onAddItem: (url: string) => Promise<string | null>;
   onToggleHome: (id: string, current: boolean) => void;
+  onToggleVisible: (id: string, current: boolean) => void;
   onUpdateItem: (id: string, field: string, value: string) => void;
   onDeleteItem: (id: string) => Promise<boolean>;
   onRefresh: () => void;
@@ -29,6 +30,7 @@ export function GaleriaTab({
   galeria,
   onAddItem,
   onToggleHome,
+  onToggleVisible,
   onUpdateItem,
   onRefresh,
   addPendingFile,
@@ -144,18 +146,23 @@ export function GaleriaTab({
               key={img.id}
               className={`neuro-card-sm overflow-hidden transition-all ${
                 markedForDeletion ? 'opacity-60 ring-2 ring-red-300' : ''
-              }`}
+              } ${!markedForDeletion && !img.visible ? 'opacity-70' : ''}`}
             >
               {/* Header con preview y acciones rapidas */}
               <div className="p-3 flex items-center gap-3">
                 <div className="relative w-16 h-16 rounded-lg overflow-hidden neuro-inset flex-shrink-0">
-                  <img src={img.url} alt="" className="w-full h-full object-cover" />
+                  <img src={img.url} alt="" className={`w-full h-full object-cover ${!img.visible ? 'grayscale' : ''}`} />
                   {markedForDeletion && (
                     <div className="absolute inset-0 bg-red-500/50 flex items-center justify-center">
                       <Trash2 className="w-5 h-5 text-white" />
                     </div>
                   )}
-                  {!markedForDeletion && hasItemPending(img.id) && (
+                  {!markedForDeletion && !img.visible && (
+                    <div className="absolute inset-0 bg-gray-500/30 flex items-center justify-center">
+                      <EyeOff className="w-5 h-5 text-white" />
+                    </div>
+                  )}
+                  {!markedForDeletion && img.visible && hasItemPending(img.id) && (
                     <div className="absolute inset-0 bg-amber-500/30 flex items-center justify-center">
                       <span className="text-xs text-white font-medium">Pendiente</span>
                     </div>
@@ -181,15 +188,28 @@ export function GaleriaTab({
                     ) : (
                       <>
                         <button
+                          onClick={() => onToggleVisible(img.id, img.visible)}
+                          className={`text-xs px-2 py-1 rounded-lg flex items-center gap-1 cursor-pointer transition-colors ${
+                            img.visible
+                              ? 'bg-green-500 text-white'
+                              : 'bg-gray-200 text-gray-500'
+                          }`}
+                          title={img.visible ? 'Visible en galeria' : 'Oculta en galeria'}
+                        >
+                          {img.visible ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                          {img.visible ? 'Visible' : 'Oculta'}
+                        </button>
+                        <button
                           onClick={() => onToggleHome(img.id, img.es_home)}
                           className={`text-xs px-2 py-1 rounded-lg flex items-center gap-1 cursor-pointer transition-colors ${
                             img.es_home
                               ? 'bg-[#d4af37] text-white'
                               : 'neuro-flat text-gray-600 hover:text-gray-800'
                           }`}
+                          title={img.es_home ? 'Se muestra en Home' : 'No se muestra en Home'}
                         >
                           <Eye className="w-3 h-3" />
-                          {img.es_home ? 'En Home' : 'Mostrar'}
+                          {img.es_home ? 'En Home' : 'Home'}
                         </button>
                         {isSupabaseStorageUrl(img.url) && !hasItemPending(img.id) && (
                           <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">

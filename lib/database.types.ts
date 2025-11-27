@@ -64,6 +64,7 @@ export interface SitioGaleria {
   titulo: string | null;
   descripcion: string | null;
   es_home: boolean;
+  visible: boolean;
   orden: number;
   created_at: string;
 }

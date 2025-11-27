@@ -61,7 +61,7 @@ export default function Home() {
             supabase.from('sitio_config').select('*').eq('sitio_id', sitioData.id).single(),
             supabase.from('sitio_textos').select('pagina, textos').eq('sitio_id', sitioData.id),
             supabase.from('sitio_features').select('*').eq('sitio_id', sitioData.id).order('orden'),
-            supabase.from('sitio_galeria').select('*').eq('sitio_id', sitioData.id).eq('es_home', true).order('orden')
+            supabase.from('sitio_galeria').select('*').eq('sitio_id', sitioData.id).eq('es_home', true).eq('visible', true).order('orden')
           ]);
 
           const config = configRes.data;

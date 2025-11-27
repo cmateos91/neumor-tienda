@@ -136,6 +136,7 @@ export interface SitioDataActions {
   deleteMenuItem: (id: string) => Promise<boolean>;
   addGaleriaItem: (url: string) => Promise<string | null>;
   toggleGaleriaHome: (id: string, current: boolean) => void;
+  toggleGaleriaVisible: (id: string, current: boolean) => void;
   updateGaleriaItem: (id: string, field: string, value: string) => void;
   deleteGaleriaItem: (id: string) => Promise<boolean>;
   addFeature: () => Promise<boolean>;
@@ -398,6 +399,7 @@ export function useSitioData(): UseSitioDataReturn {
             titulo: item.titulo,
             descripcion: item.descripcion,
             es_home: item.es_home,
+            visible: item.visible,
             orden: item.orden
           })
           .eq('id', item.id)
@@ -497,6 +499,7 @@ export function useSitioData(): UseSitioDataReturn {
         sitio_id: sitio.id,
         url,
         es_home: false,
+        visible: true,
         orden: galeria.length
       }).select('id').single();
       if (error) throw error;
@@ -510,6 +513,7 @@ export function useSitioData(): UseSitioDataReturn {
           titulo: null,
           descripcion: null,
           es_home: false,
+          visible: true,
           orden: galeria.length,
           created_at: new Date().toISOString()
         }]);
@@ -524,6 +528,10 @@ export function useSitioData(): UseSitioDataReturn {
 
   const toggleGaleriaHome = useCallback((id: string, current: boolean) => {
     setGaleria(prev => prev.map(g => g.id === id ? { ...g, es_home: !current } : g));
+  }, []);
+
+  const toggleGaleriaVisible = useCallback((id: string, current: boolean) => {
+    setGaleria(prev => prev.map(g => g.id === id ? { ...g, visible: !current } : g));
   }, []);
 
   const updateGaleriaItem = useCallback((id: string, field: string, value: string) => {
@@ -617,6 +625,7 @@ export function useSitioData(): UseSitioDataReturn {
     deleteMenuItem,
     addGaleriaItem,
     toggleGaleriaHome,
+    toggleGaleriaVisible,
     updateGaleriaItem,
     deleteGaleriaItem,
     addFeature,

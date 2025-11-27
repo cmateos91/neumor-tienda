@@ -17,6 +17,7 @@ export default function AdminGaleria() {
     titulo: '',
     descripcion: '',
     es_home: false,
+    visible: true,
     orden: 0
   });
 
@@ -60,6 +61,7 @@ export default function AdminGaleria() {
         titulo: item.titulo || '',
         descripcion: item.descripcion || '',
         es_home: item.es_home,
+        visible: item.visible,
         orden: item.orden
       });
     } else {
@@ -70,6 +72,7 @@ export default function AdminGaleria() {
         titulo: '',
         descripcion: '',
         es_home: false,
+        visible: true,
         orden: items.length
       });
     }

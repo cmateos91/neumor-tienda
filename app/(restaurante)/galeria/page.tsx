@@ -43,6 +43,7 @@ export default function Galeria() {
             .from('sitio_galeria')
             .select('*')
             .eq('sitio_id', sitio.id)
+            .eq('visible', true)
             .order('orden')
         ]);
 

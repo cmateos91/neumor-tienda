@@ -5,11 +5,10 @@ import {
   Monitor, Tablet, Smartphone, RefreshCw, ExternalLink,
   MousePointer2, Pencil, Sun, Moon, Upload, Layers
 } from 'lucide-react';
-import { Device, pages, deviceWidths } from '../../hooks/useAdminUI';
+import { Device } from '../../hooks/useAdminUI';
 
 interface TopBarProps {
   currentPage: string;
-  onPageChange: (page: string) => void;
   device: Device;
   onDeviceChange: (device: Device) => void;
   editMode: boolean;
@@ -24,7 +23,6 @@ interface TopBarProps {
 
 export function TopBar({
   currentPage,
-  onPageChange,
   device,
   onDeviceChange,
   editMode,
@@ -46,16 +44,6 @@ export function TopBar({
     <div className="neuro-card px-6 py-4 flex items-center justify-between">
       <div className="flex items-center gap-4">
         <h1 className="text-xl font-bold text-gray-700">Editor Visual</h1>
-        <div className="h-6 w-px bg-gray-300" />
-        <select
-          value={currentPage}
-          onChange={(e) => onPageChange(e.target.value)}
-          className="neuro-select text-sm"
-        >
-          {pages.map(p => (
-            <option key={p.value} value={p.value}>{p.label}</option>
-          ))}
-        </select>
       </div>
 
       <div className="flex items-center gap-3">
