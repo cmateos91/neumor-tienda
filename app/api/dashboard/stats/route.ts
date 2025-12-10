@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import type { DashboardStats } from '@/lib/integrations.types';
+import type { DashboardStats, LeadSource } from '@/lib/integrations.types';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -56,9 +56,25 @@ export async function GET(request: NextRequest) {
     const { data: allLeads } = await allLeadsQuery;
 
     // Calcular estadisticas de leads
-    const leadsBySource: Record<string, number> = {};
+    const leadsBySource: Record<LeadSource, number> = {
+      web_form: 0,
+      instagram: 0,
+      facebook: 0,
+      whatsapp: 0,
+      google: 0,
+      tripadvisor: 0,
+      email: 0,
+      phone: 0,
+      referral: 0,
+      n8n: 0,
+      manual: 0,
+      other: 0
+    };
+
     (allLeads || []).forEach(lead => {
-      leadsBySource[lead.source] = (leadsBySource[lead.source] || 0) + 1;
+      const source: LeadSource = (lead.source as LeadSource) || 'other';
+      const validSource = leadsBySource[source] !== undefined ? source : 'other';
+      leadsBySource[validSource] = (leadsBySource[validSource] || 0) + 1;
     });
 
     const totalLeads = allLeads?.length || 0;
@@ -95,7 +111,7 @@ export async function GET(request: NextRequest) {
         conversion_rate: totalLeads > 0
           ? Math.round((convertedLeads / totalLeads) * 100)
           : 0,
-        by_source: leadsBySource as any
+        by_source: leadsBySource
       },
       messages: {
         received: messagesReceived,

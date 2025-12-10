@@ -5,10 +5,13 @@ import { Trash2, Eye, EyeOff, RefreshCw, Image, ChevronDown, ChevronUp, Undo2 } 
 import { SitioGaleria } from '@/lib/database.types';
 import { ImageUploader } from '../ui/ImageUploader';
 import { isSupabaseStorageUrl } from '@/lib/storage';
+import { FormRestaurante } from '../../hooks/useSitioData';
 
 interface GaleriaTabProps {
   sitio: { id: string } | null;
   galeria: SitioGaleria[];
+  formRestaurante: FormRestaurante;
+  setFormRestaurante: React.Dispatch<React.SetStateAction<FormRestaurante>>;
   onAddItem: (url: string) => Promise<string | null>;
   onToggleHome: (id: string, current: boolean) => void;
   onToggleVisible: (id: string, current: boolean) => void;
@@ -28,6 +31,8 @@ interface GaleriaTabProps {
 export function GaleriaTab({
   sitio,
   galeria,
+  formRestaurante,
+  setFormRestaurante,
   onAddItem,
   onToggleHome,
   onToggleVisible,
@@ -40,6 +45,9 @@ export function GaleriaTab({
   unmarkForDeletion,
   isMarkedForDeletion
 }: GaleriaTabProps) {
+  const updateField = (field: keyof FormRestaurante, value: string) => {
+    setFormRestaurante(prev => ({ ...prev, [field]: value }));
+  };
   const [newImageUrl, setNewImageUrl] = useState('');
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
 
@@ -114,9 +122,45 @@ export function GaleriaTab({
 
   return (
     <div className="space-y-4 animate-fadeIn">
+      {/* Textos de página */}
+      <div className="neuro-card-sm p-4 space-y-4">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-1 h-4 bg-[#d4af37] rounded-full" />
+          <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Textos de página</p>
+        </div>
+
+        <div>
+          <label className="text-xs text-gray-500 mb-1 block">Título</label>
+          <input
+            type="text"
+            data-field="galeria_titulo"
+            value={formRestaurante.galeria_titulo}
+            onChange={(e) => updateField('galeria_titulo', e.target.value)}
+            className="neuro-input text-sm"
+          />
+        </div>
+
+        <div>
+          <label className="text-xs text-gray-500 mb-1 block">Subtítulo</label>
+          <textarea
+            data-field="galeria_subtitulo"
+            value={formRestaurante.galeria_subtitulo}
+            onChange={(e) => updateField('galeria_subtitulo', e.target.value)}
+            className="neuro-input text-sm resize-none"
+            rows={2}
+          />
+        </div>
+      </div>
+
+      {/* Imágenes */}
+      <div className="flex items-center gap-2">
+        <div className="w-1 h-4 bg-[#d4af37] rounded-full" />
+        <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Imágenes de la galería</p>
+      </div>
+
       {!sitio && (
         <div className="neuro-card-sm p-4 text-center text-amber-600 text-sm">
-          Primero debes crear un restaurante en la seccion "Info"
+          Primero debes crear un restaurante en la seccion &quot;Info&quot;
         </div>
       )}
 

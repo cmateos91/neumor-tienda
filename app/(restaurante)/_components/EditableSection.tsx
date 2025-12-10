@@ -46,7 +46,7 @@ export default function EditableSection({
   };
 
   // Long press detection
-  const handlePointerDown = (e: React.PointerEvent) => {
+  const handlePointerDown = () => {
     if (!isEditMode) return;
 
     longPressTimer.current = setTimeout(() => {
@@ -117,10 +117,11 @@ export default function EditableSection({
 
   // Sincronizar isLifted con isSelected
   useEffect(() => {
-    if (!isSelected) {
+    if (!isSelected && isLifted) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLifted(false);
     }
-  }, [isSelected]);
+  }, [isSelected, isLifted]);
 
   if (!isEditMode) {
     return <div className={className}>{children}</div>;

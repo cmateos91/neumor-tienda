@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { useRestaurant } from '@/lib/restaurant-context';
+import EditableWrapper from '../_components/EditableWrapper';
 
 export default function Galeria() {
   const { textos, galeria } = useRestaurant();
@@ -16,12 +17,12 @@ export default function Galeria() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl md:text-6xl font-bold text-[#2c2c2c] mb-4">
+          <EditableWrapper elementId="galeria.titulo" as="h1" className="text-5xl md:text-6xl font-bold text-[#2c2c2c] mb-4">
             {pageTexts.titulo}
-          </h1>
-          <p className="text-[#666666] text-lg max-w-2xl mx-auto">
+          </EditableWrapper>
+          <EditableWrapper elementId="galeria.subtitulo" as="p" className="text-[#666666] text-lg max-w-2xl mx-auto">
             {pageTexts.subtitulo}
-          </p>
+          </EditableWrapper>
         </div>
 
         {/* Gallery Grid */}

@@ -15,17 +15,14 @@ export default function EditableWrapper({
   className = '',
   as: Component = 'div'
 }: EditableWrapperProps) {
-  const [inIframe, setInIframe] = useState(false);
+  // Determinar si estamos en iframe solo una vez
+  const [inIframe] = useState(() => typeof window !== 'undefined' && window !== window.parent);
   const [editModeEnabled, setEditModeEnabled] = useState(false); // Navegacion por defecto
   const [isSelected, setIsSelected] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
-    // Detectar si estamos en un iframe
-    const isInIframe = window !== window.parent;
-    setInIframe(isInIframe);
-
-    if (!isInIframe) return;
+    if (!inIframe) return;
 
     // Escuchar mensajes del admin
     const handleMessage = (event: MessageEvent) => {
@@ -54,7 +51,7 @@ export default function EditableWrapper({
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [elementId]);
+  }, [elementId, inIframe]);
 
   // El modo edicion esta activo si estamos en iframe Y el toggle esta activado
   const isEditMode = inIframe && editModeEnabled;

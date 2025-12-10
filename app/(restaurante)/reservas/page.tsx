@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Calendar, Clock, Users, Mail, Phone, User, MessageSquare, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useRestaurant } from '@/lib/restaurant-context';
+import EditableWrapper from '../_components/EditableWrapper';
 
 export default function Reservas() {
   const { sitioId, textos } = useRestaurant();
@@ -87,12 +88,12 @@ export default function Reservas() {
           <div className="neuro-pressed rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
             <CheckCircle2 className="w-12 h-12 text-[#d4af37]" />
           </div>
-          <h2 className="text-4xl font-bold text-[#2c2c2c] mb-4">
+          <EditableWrapper elementId="reservas.exito_titulo" as="h2" className="text-4xl font-bold text-[#2c2c2c] mb-4">
             {pageTexts.exito_titulo}
-          </h2>
-          <p className="text-[#666666] text-lg">
+          </EditableWrapper>
+          <EditableWrapper elementId="reservas.exito_mensaje" as="p" className="text-[#666666] text-lg">
             {pageTexts.exito_mensaje}
-          </p>
+          </EditableWrapper>
         </div>
       </div>
     );
@@ -103,12 +104,12 @@ export default function Reservas() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl md:text-6xl font-bold text-[#2c2c2c] mb-4">
+          <EditableWrapper elementId="reservas.titulo" as="h1" className="text-5xl md:text-6xl font-bold text-[#2c2c2c] mb-4">
             {pageTexts.titulo}
-          </h1>
-          <p className="text-[#666666] text-lg max-w-2xl mx-auto">
+          </EditableWrapper>
+          <EditableWrapper elementId="reservas.subtitulo" as="p" className="text-[#666666] text-lg max-w-2xl mx-auto">
             {pageTexts.subtitulo}
-          </p>
+          </EditableWrapper>
         </div>
 
         {/* Form */}
@@ -249,7 +250,15 @@ export default function Reservas() {
               disabled={isSubmitting}
               className="w-full neuro-flat neuro-hover rounded-2xl py-6 text-lg font-semibold text-[#2c2c2c] bg-transparent border-0 cursor-pointer disabled:cursor-not-allowed"
             >
-              {isSubmitting ? pageTexts.btn_enviando : pageTexts.btn_confirmar}
+              {isSubmitting ? (
+                <EditableWrapper elementId="reservas.btn_enviando" as="span">
+                  {pageTexts.btn_enviando}
+                </EditableWrapper>
+              ) : (
+                <EditableWrapper elementId="reservas.btn" as="span">
+                  {pageTexts.btn_confirmar}
+                </EditableWrapper>
+              )}
             </button>
           </form>
         </div>

@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 import { PageSection, defaultHomeLayout } from '@/lib/page-builder.types';
 
 // Tipos
-export type Tab = 'restaurante' | 'menu' | 'galeria' | 'features';
+export type Tab = 'inicio' | 'menu' | 'galeria' | 'reservas' | 'contacto';
 export type Device = 'desktop' | 'tablet' | 'mobile';
 
 export interface Message {
@@ -22,10 +22,11 @@ export const pages = [
 ];
 
 export const tabs: { id: Tab; label: string; iconName: string }[] = [
-  { id: 'restaurante', label: 'Info', iconName: 'Store' },
+  { id: 'inicio', label: 'Inicio', iconName: 'Home' },
   { id: 'menu', label: 'Menu', iconName: 'UtensilsCrossed' },
   { id: 'galeria', label: 'Galeria', iconName: 'Image' },
-  { id: 'features', label: 'Features', iconName: 'Sparkles' }
+  { id: 'reservas', label: 'Reservas', iconName: 'Calendar' },
+  { id: 'contacto', label: 'Contacto', iconName: 'Mail' }
 ];
 
 export const deviceWidths: Record<Device, string> = {
@@ -36,19 +37,20 @@ export const deviceWidths: Record<Device, string> = {
 
 // Mapeo de tabs a páginas del iframe
 export const tabToPage: Record<Tab, string> = {
-  restaurante: '/',
+  inicio: '/',
   menu: '/menu',
   galeria: '/galeria',
-  features: '/'
+  reservas: '/reservas',
+  contacto: '/contacto'
 };
 
 // Mapeo de páginas a tabs (inverso)
 export const pageToTab: Record<string, Tab> = {
-  '/': 'restaurante',
+  '/': 'inicio',
   '/menu': 'menu',
   '/galeria': 'galeria',
-  '/reservas': 'restaurante',
-  '/contacto': 'restaurante'
+  '/reservas': 'reservas',
+  '/contacto': 'contacto'
 };
 
 // Interface para el estado del hook
@@ -89,7 +91,7 @@ export type UseAdminUIReturn = AdminUIState & AdminUIActions;
 
 export function useAdminUI(): UseAdminUIReturn {
   // Estado de navegacion
-  const [activeTab, setActiveTab] = useState<Tab>('restaurante');
+  const [activeTab, setActiveTab] = useState<Tab>('inicio');
   const [device, setDevice] = useState<Device>('desktop');
   const [currentPage, setCurrentPage] = useState('/');
 

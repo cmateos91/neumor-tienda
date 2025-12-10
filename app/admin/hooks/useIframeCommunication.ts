@@ -15,7 +15,7 @@ export type IframeMessageType =
   | 'select';
 
 // Mapeo de elementId a navegacion en el admin
-export type Tab = 'restaurante' | 'menu' | 'galeria' | 'features';
+export type Tab = 'inicio' | 'menu' | 'galeria' | 'reservas' | 'contacto';
 
 export interface ElementNavigation {
   tab: Tab;
@@ -26,35 +26,39 @@ export interface ElementNavigation {
 // Mapeo completo de elementos editables
 export const elementToNavigation: Record<string, ElementNavigation> = {
   // INICIO - Hero
-  'inicio.hero.nombre': { tab: 'restaurante', page: 'inicio', inputName: 'nombre' },
-  'inicio.hero.tagline': { tab: 'restaurante', page: 'inicio', inputName: 'tagline' },
-  'inicio.hero.btn_menu': { tab: 'restaurante', page: 'inicio', inputName: 'inicio_btn_menu' },
-  'inicio.hero.btn_reservas': { tab: 'restaurante', page: 'inicio', inputName: 'inicio_btn_reservas' },
+  'inicio.hero.nombre': { tab: 'inicio', page: 'inicio', inputName: 'nombre' },
+  'inicio.hero.tagline': { tab: 'inicio', page: 'inicio', inputName: 'tagline' },
+  'inicio.hero.btn_menu': { tab: 'inicio', page: 'inicio', inputName: 'inicio_btn_menu' },
+  'inicio.hero.btn_reservas': { tab: 'inicio', page: 'inicio', inputName: 'inicio_btn_reservas' },
   // INICIO - Features
-  'inicio.features.titulo': { tab: 'restaurante', page: 'inicio', inputName: 'inicio_features_titulo' },
-  'inicio.features.subtitulo': { tab: 'restaurante', page: 'inicio', inputName: 'inicio_features_subtitulo' },
-  'inicio.features.items': { tab: 'features' },
+  'inicio.features.titulo': { tab: 'inicio', page: 'inicio', inputName: 'inicio_features_titulo' },
+  'inicio.features.subtitulo': { tab: 'inicio', page: 'inicio', inputName: 'inicio_features_subtitulo' },
+  'inicio.features.items': { tab: 'inicio' },
   // INICIO - Galeria
-  'inicio.galeria.titulo': { tab: 'restaurante', page: 'inicio', inputName: 'inicio_galeria_titulo' },
-  'inicio.galeria.subtitulo': { tab: 'restaurante', page: 'inicio', inputName: 'inicio_galeria_subtitulo' },
-  'inicio.galeria.btn': { tab: 'restaurante', page: 'inicio', inputName: 'inicio_galeria_btn' },
+  'inicio.galeria.titulo': { tab: 'inicio', page: 'inicio', inputName: 'inicio_galeria_titulo' },
+  'inicio.galeria.subtitulo': { tab: 'inicio', page: 'inicio', inputName: 'inicio_galeria_subtitulo' },
+  'inicio.galeria.btn': { tab: 'inicio', page: 'inicio', inputName: 'inicio_galeria_btn' },
   'inicio.galeria.items': { tab: 'galeria' },
   // MENU
-  'menu.titulo': { tab: 'restaurante', page: 'menu', inputName: 'menu_titulo' },
-  'menu.subtitulo': { tab: 'restaurante', page: 'menu', inputName: 'menu_subtitulo' },
+  'menu.titulo': { tab: 'menu', page: 'menu', inputName: 'menu_titulo' },
+  'menu.subtitulo': { tab: 'menu', page: 'menu', inputName: 'menu_subtitulo' },
+  'menu.sin_items': { tab: 'menu', page: 'menu', inputName: 'menu_sin_items' },
   'menu.items': { tab: 'menu' },
   // GALERIA
-  'galeria.titulo': { tab: 'restaurante', page: 'galeria', inputName: 'galeria_titulo' },
-  'galeria.subtitulo': { tab: 'restaurante', page: 'galeria', inputName: 'galeria_subtitulo' },
+  'galeria.titulo': { tab: 'galeria', page: 'galeria', inputName: 'galeria_titulo' },
+  'galeria.subtitulo': { tab: 'galeria', page: 'galeria', inputName: 'galeria_subtitulo' },
   // RESERVAS
-  'reservas.titulo': { tab: 'restaurante', page: 'reservas', inputName: 'reservas_titulo' },
-  'reservas.subtitulo': { tab: 'restaurante', page: 'reservas', inputName: 'reservas_subtitulo' },
-  'reservas.btn': { tab: 'restaurante', page: 'reservas', inputName: 'reservas_btn_confirmar' },
+  'reservas.titulo': { tab: 'reservas', page: 'reservas', inputName: 'reservas_titulo' },
+  'reservas.subtitulo': { tab: 'reservas', page: 'reservas', inputName: 'reservas_subtitulo' },
+  'reservas.btn': { tab: 'reservas', page: 'reservas', inputName: 'reservas_btn_confirmar' },
+  'reservas.btn_enviando': { tab: 'reservas', page: 'reservas', inputName: 'reservas_btn_enviando' },
+  'reservas.exito_titulo': { tab: 'reservas', page: 'reservas', inputName: 'reservas_exito_titulo' },
+  'reservas.exito_mensaje': { tab: 'reservas', page: 'reservas', inputName: 'reservas_exito_mensaje' },
   // CONTACTO
-  'contacto.titulo': { tab: 'restaurante', page: 'contacto', inputName: 'contacto_titulo' },
-  'contacto.subtitulo': { tab: 'restaurante', page: 'contacto', inputName: 'contacto_subtitulo' },
-  'contacto.info.titulo': { tab: 'restaurante', page: 'contacto', inputName: 'contacto_info_titulo' },
-  'contacto.info.descripcion': { tab: 'restaurante', page: 'contacto', inputName: 'contacto_info_descripcion' }
+  'contacto.titulo': { tab: 'contacto', page: 'contacto', inputName: 'contacto_titulo' },
+  'contacto.subtitulo': { tab: 'contacto', page: 'contacto', inputName: 'contacto_subtitulo' },
+  'contacto.info.titulo': { tab: 'contacto', page: 'contacto', inputName: 'contacto_info_titulo' },
+  'contacto.info.descripcion': { tab: 'contacto', page: 'contacto', inputName: 'contacto_info_descripcion' }
 };
 
 // Interface para los callbacks de eventos del iframe
@@ -207,6 +211,15 @@ export function useIframeCommunication(options: UseIframeCommunicationOptions = 
     }
   }, []);
 
+  // Reenvia los estados actuales de modos/seleccion al iframe
+  const syncIframeState = useCallback(() => {
+    sendToIframe('editMode', { enabled: editMode });
+    sendPageBuilderCommand(pageBuilderMode ? 'enter-edit' : 'exit-edit');
+    if (selectedElement) {
+      sendToIframe('select', { elementId: selectedElement });
+    }
+  }, [editMode, pageBuilderMode, selectedElement, sendPageBuilderCommand, sendToIframe]);
+
   // Efecto para enviar editMode cuando cambia
   useEffect(() => {
     sendToIframe('editMode', { enabled: editMode });
@@ -259,12 +272,27 @@ export function useIframeCommunication(options: UseIframeCommunicationOptions = 
         if (path) {
           eventHandlers?.onNavigate?.(path);
         }
+        // Reenviar estados de modos para mantener el iframe sincronizado al navegar
+        syncIframeState();
       }
     };
 
     window.addEventListener('message', handleIframeMessage);
     return () => window.removeEventListener('message', handleIframeMessage);
-  }, [sendToIframe, eventHandlers]);
+  }, [sendToIframe, eventHandlers, syncIframeState]);
+
+  // Reenviar estado tras cada carga completa del iframe (cuando cambia src)
+  useEffect(() => {
+    const iframeEl = iframeRef.current;
+    if (!iframeEl) return;
+
+    const handleLoad = () => {
+      syncIframeState();
+    };
+
+    iframeEl.addEventListener('load', handleLoad);
+    return () => iframeEl.removeEventListener('load', handleLoad);
+  }, [iframeRef, syncIframeState]);
 
   return {
     // Estado

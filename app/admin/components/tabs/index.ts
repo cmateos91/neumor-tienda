@@ -1,5 +1,6 @@
 // Barrel export de tabs del admin
-export * from './RestauranteTab';
+export * from './InicioTab';
 export * from './MenuTab';
 export * from './GaleriaTab';
-export * from './FeaturesTab';
+export * from './ReservasTab';
+export * from './ContactoTab';

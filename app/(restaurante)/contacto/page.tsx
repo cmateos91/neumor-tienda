@@ -3,6 +3,7 @@
 import React from 'react';
 import { MapPin, Phone, Mail, Clock } from 'lucide-react';
 import { useRestaurant } from '@/lib/restaurant-context';
+import EditableWrapper from '../_components/EditableWrapper';
 
 export default function Contacto() {
   const { config, textos } = useRestaurant();
@@ -40,12 +41,12 @@ export default function Contacto() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl md:text-6xl font-bold text-[#2c2c2c] mb-4">
+          <EditableWrapper elementId="contacto.titulo" as="h1" className="text-5xl md:text-6xl font-bold text-[#2c2c2c] mb-4">
             {pageTexts.titulo}
-          </h1>
-          <p className="text-[#666666] text-lg max-w-2xl mx-auto">
+          </EditableWrapper>
+          <EditableWrapper elementId="contacto.subtitulo" as="p" className="text-[#666666] text-lg max-w-2xl mx-auto">
             {pageTexts.subtitulo}
-          </p>
+          </EditableWrapper>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -104,12 +105,12 @@ export default function Contacto() {
 
         {/* Additional Info */}
         <div className="mt-12 neuro-flat rounded-3xl p-8 md:p-12 text-center">
-          <h2 className="text-3xl font-bold text-[#2c2c2c] mb-4">
+          <EditableWrapper elementId="contacto.info.titulo" as="h2" className="text-3xl font-bold text-[#2c2c2c] mb-4">
             {pageTexts.info_titulo}
-          </h2>
-          <p className="text-[#666666] max-w-3xl mx-auto leading-relaxed">
+          </EditableWrapper>
+          <EditableWrapper elementId="contacto.info.descripcion" as="p" className="text-[#666666] max-w-3xl mx-auto leading-relaxed">
             {pageTexts.info_descripcion}
-          </p>
+          </EditableWrapper>
         </div>
       </div>
     </div>

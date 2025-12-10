@@ -160,7 +160,8 @@ async function handleLeadCreate(
 async function handleLeadUpdate(
   data: WebhookPayload['data'] & { lead_id?: string; status?: LeadStatus }
 ): Promise<WebhookResponse> {
-  const { lead_id, ...updateData } = data as any;
+  const { lead_id, ...rest } = data;
+  const updateData: Partial<WebhookPayload['data']> & { status?: LeadStatus } = rest;
 
   if (!lead_id) {
     return { success: false, message: 'Validation error', error: 'lead_id is required' };
@@ -252,7 +253,7 @@ async function handleActivityLog(
     lead_id?: string;
   }
 ): Promise<WebhookResponse> {
-  const { type = 'system', title = 'Actividad', message: description, lead_id } = data as any;
+  const { type = 'system', title = 'Actividad', message: description, lead_id } = data;
 
   const { data: activity, error } = await supabase
     .from('activities')
@@ -285,7 +286,7 @@ async function logWebhook(
   sitioId: string | null,
   source: string,
   event: string | undefined,
-  payload: any,
+  payload: unknown,
   response: WebhookResponse,
   processingTime: number,
   request: NextRequest

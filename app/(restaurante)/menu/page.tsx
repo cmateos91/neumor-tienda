@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import MenuCard from '../_components/MenuCard';
 import { useRestaurant } from '@/lib/restaurant-context';
+import EditableWrapper from '../_components/EditableWrapper';
 
 export default function Menu() {
   const { textos, categorias, menuItems } = useRestaurant();
@@ -33,12 +34,12 @@ export default function Menu() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl md:text-6xl font-bold text-[#2c2c2c] mb-4">
+          <EditableWrapper elementId="menu.titulo" as="h1" className="text-5xl md:text-6xl font-bold text-[#2c2c2c] mb-4">
             {pageTexts.titulo}
-          </h1>
-          <p className="text-[#666666] text-lg max-w-2xl mx-auto">
+          </EditableWrapper>
+          <EditableWrapper elementId="menu.subtitulo" as="p" className="text-[#666666] text-lg max-w-2xl mx-auto">
             {pageTexts.subtitulo}
-          </p>
+          </EditableWrapper>
         </div>
 
         {/* Category Filter */}
@@ -67,9 +68,9 @@ export default function Menu() {
         {/* Menu Items */}
         {filteredItems.length === 0 ? (
           <div className="neuro-flat rounded-3xl p-12 text-center">
-            <p className="text-[#666666] text-lg">
+            <EditableWrapper elementId="menu.sin_items" as="p" className="text-[#666666] text-lg">
               {pageTexts.sin_items}
-            </p>
+            </EditableWrapper>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

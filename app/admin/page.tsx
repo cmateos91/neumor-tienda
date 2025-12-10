@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Store, UtensilsCrossed, Image, Sparkles, Loader2, GripVertical, Eye, EyeOff, Layers } from 'lucide-react';
 
 // Hooks
@@ -24,10 +24,11 @@ import {
   MessageToast,
   ConfirmDialog,
   InputDialog,
-  RestauranteTab,
+  InicioTab,
   MenuTab,
   GaleriaTab,
-  FeaturesTab,
+  ReservasTab,
+  ContactoTab,
   DashboardContainer
 } from './components';
 
@@ -45,6 +46,9 @@ const tabIcons = {
 export default function AdminEditor() {
   // Estado para la vista actual (editor o dashboard)
   const [currentView, setCurrentView] = useState<AdminView>('editor');
+
+  // Ref para el scroll horizontal de tabs
+  const tabsScrollRef = useRef<HTMLDivElement>(null);
 
   // Hook de datos
   const {
@@ -195,11 +199,31 @@ export default function AdminEditor() {
   // Sincronizar activeTab → iframe (navegar usando SPA, sin recargar)
   useEffect(() => {
     const targetPage = tabToPage[activeTab];
-    if (targetPage) {
+    // Solo navegar si:
+    // 1. El tab tiene una página asociada
+    // 2. La página destino es diferente a la actual
+    if (targetPage && targetPage !== currentPage) {
       navigateIframe(targetPage);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
+
+  // Scroll horizontal con rueda del ratón en tabs
+  useEffect(() => {
+    const tabsContainer = tabsScrollRef.current;
+    if (!tabsContainer) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      // Solo aplicar si hay scroll horizontal disponible
+      if (tabsContainer.scrollWidth > tabsContainer.clientWidth) {
+        e.preventDefault();
+        tabsContainer.scrollLeft += e.deltaY;
+      }
+    };
+
+    tabsContainer.addEventListener('wheel', handleWheel, { passive: false });
+    return () => tabsContainer.removeEventListener('wheel', handleWheel);
+  }, []);
 
   // Toggle Page Builder Mode
   const togglePageBuilderMode = () => {
@@ -302,7 +326,7 @@ export default function AdminEditor() {
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-3">
           <Store className="w-5 h-5 text-amber-600 flex-shrink-0" />
           <p className="text-amber-800 text-sm">
-            <strong>No hay sitio configurado.</strong> Ve a la seccion "Info", llena los datos y haz clic en "Publicar" para comenzar.
+            <strong>No hay sitio configurado.</strong> Ve a la seccion &quot;Info&quot;, llena los datos y haz clic en &quot;Publicar&quot; para comenzar.
           </p>
         </div>
       )}
@@ -350,34 +374,49 @@ export default function AdminEditor() {
 
           {/* Tabs - solo si no está en page builder mode */}
           {!pageBuilderMode && (
-            <div className="neuro-card p-2 flex gap-1">
-              {tabs.map(tab => {
-                const Icon = tabIcons[tab.iconName as keyof typeof tabIcons];
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`neuro-tab flex-1 flex items-center justify-center gap-2 ${
-                      activeTab === tab.id ? 'active' : ''
-                    }`}
-                  >
-                    {Icon && <Icon className="w-4 h-4" />}
-                    <span className="text-sm">{tab.label}</span>
-                  </button>
-                );
-              })}
+            <div className="neuro-card p-2">
+              <div
+                ref={tabsScrollRef}
+                className="tabs-scroll flex gap-1 overflow-x-auto scroll-smooth"
+                style={{
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: 'rgba(209, 213, 219, 0.3) transparent'
+                }}
+              >
+                {tabs.map(tab => {
+                  const Icon = tabIcons[tab.iconName as keyof typeof tabIcons];
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`neuro-tab flex-shrink-0 flex items-center justify-center gap-2 px-4 ${
+                        activeTab === tab.id ? 'active' : ''
+                      }`}
+                    >
+                      {Icon && <Icon className="w-4 h-4" />}
+                      <span className="text-sm">{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
 
           {/* Panel Content */}
           {!pageBuilderMode && (
             <div className="flex-1 neuro-card p-4 overflow-y-auto neuro-scroll">
-              {activeTab === 'restaurante' && (
-                <RestauranteTab
+              {activeTab === 'inicio' && (
+                <InicioTab
+                  sitio={sitio}
+                  features={features}
                   formRestaurante={formRestaurante}
                   setFormRestaurante={setFormRestaurante}
                   expandedPage={expandedPage}
                   setExpandedPage={setExpandedPage}
+                  onAddFeature={addFeature}
+                  onUpdateFeature={updateFeature}
+                  onDeleteFeature={deleteFeature}
+                  confirmDelete={confirmDelete}
                 />
               )}
 
@@ -386,6 +425,8 @@ export default function AdminEditor() {
                   sitio={sitio}
                   categorias={categorias}
                   menuItems={menuItems}
+                  formRestaurante={formRestaurante}
+                  setFormRestaurante={setFormRestaurante}
                   onAddCategoria={addCategoria}
                   onAddMenuItem={addMenuItem}
                   onUpdateMenuItem={updateMenuItem}
@@ -405,6 +446,8 @@ export default function AdminEditor() {
                 <GaleriaTab
                   sitio={sitio}
                   galeria={galeria}
+                  formRestaurante={formRestaurante}
+                  setFormRestaurante={setFormRestaurante}
                   onAddItem={addGaleriaItem}
                   onToggleHome={toggleGaleriaHome}
                   onToggleVisible={toggleGaleriaVisible}
@@ -420,15 +463,21 @@ export default function AdminEditor() {
                 />
               )}
 
-              {activeTab === 'features' && (
-                <FeaturesTab
-                  sitio={sitio}
-                  features={features}
-                  onAddFeature={addFeature}
-                  onUpdateFeature={updateFeature}
-                  onDeleteFeature={deleteFeature}
-                  onRefresh={refreshIframe}
-                  confirmDelete={confirmDelete}
+              {activeTab === 'reservas' && (
+                <ReservasTab
+                  formRestaurante={formRestaurante}
+                  setFormRestaurante={setFormRestaurante}
+                  expandedPage={expandedPage}
+                  setExpandedPage={setExpandedPage}
+                />
+              )}
+
+              {activeTab === 'contacto' && (
+                <ContactoTab
+                  formRestaurante={formRestaurante}
+                  setFormRestaurante={setFormRestaurante}
+                  expandedPage={expandedPage}
+                  setExpandedPage={setExpandedPage}
                 />
               )}
             </div>

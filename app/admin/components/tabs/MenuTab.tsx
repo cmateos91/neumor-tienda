@@ -5,11 +5,14 @@ import { Plus, Trash2, Eye, EyeOff, RefreshCw, UtensilsCrossed, ChevronDown, Che
 import { SitioMenuCategoria, SitioMenuItem } from '@/lib/database.types';
 import { ImageUploader } from '../ui/ImageUploader';
 import { isSupabaseStorageUrl } from '@/lib/storage';
+import { FormRestaurante } from '../../hooks/useSitioData';
 
 interface MenuTabProps {
   sitio: { id: string } | null;
   categorias: SitioMenuCategoria[];
   menuItems: SitioMenuItem[];
+  formRestaurante: FormRestaurante;
+  setFormRestaurante: React.Dispatch<React.SetStateAction<FormRestaurante>>;
   onAddCategoria: (nombre: string) => Promise<boolean>;
   onAddMenuItem: (categoriaId: string) => Promise<boolean>;
   onUpdateMenuItem: (id: string, field: string, value: string | number | boolean) => void;
@@ -31,6 +34,8 @@ export function MenuTab({
   sitio,
   categorias,
   menuItems,
+  formRestaurante,
+  setFormRestaurante,
   onAddCategoria,
   onAddMenuItem,
   onUpdateMenuItem,
@@ -43,6 +48,9 @@ export function MenuTab({
   unmarkForDeletion,
   isMarkedForDeletion
 }: MenuTabProps) {
+  const updateField = (field: keyof FormRestaurante, value: string) => {
+    setFormRestaurante(prev => ({ ...prev, [field]: value }));
+  };
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
 
   // Modo diferido activado si tenemos las funciones
@@ -102,9 +110,67 @@ export function MenuTab({
 
   return (
     <div className="space-y-4 animate-fadeIn">
+      {/* Textos de página */}
+      <div className="neuro-card-sm p-4 space-y-4">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-1 h-4 bg-[#d4af37] rounded-full" />
+          <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Textos de página</p>
+        </div>
+
+        <div>
+          <label className="text-xs text-gray-500 mb-1 block">Título</label>
+          <input
+            type="text"
+            data-field="menu_titulo"
+            value={formRestaurante.menu_titulo}
+            onChange={(e) => updateField('menu_titulo', e.target.value)}
+            className="neuro-input text-sm"
+          />
+        </div>
+
+        <div>
+          <label className="text-xs text-gray-500 mb-1 block">Subtítulo</label>
+          <textarea
+            data-field="menu_subtitulo"
+            value={formRestaurante.menu_subtitulo}
+            onChange={(e) => updateField('menu_subtitulo', e.target.value)}
+            className="neuro-input text-sm resize-none"
+            rows={2}
+          />
+        </div>
+
+        <div>
+          <label className="text-xs text-gray-500 mb-1 block">Texto &quot;Ver todos&quot;</label>
+          <input
+            type="text"
+            data-field="menu_filtro_todos"
+            value={formRestaurante.menu_filtro_todos}
+            onChange={(e) => updateField('menu_filtro_todos', e.target.value)}
+            className="neuro-input text-sm"
+          />
+        </div>
+
+        <div>
+          <label className="text-xs text-gray-500 mb-1 block">Mensaje sin items</label>
+          <input
+            type="text"
+            data-field="menu_sin_items"
+            value={formRestaurante.menu_sin_items}
+            onChange={(e) => updateField('menu_sin_items', e.target.value)}
+            className="neuro-input text-sm"
+          />
+        </div>
+      </div>
+
+      {/* Categorías y Platos */}
+      <div className="flex items-center gap-2">
+        <div className="w-1 h-4 bg-[#d4af37] rounded-full" />
+        <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Categorías y Platos</p>
+      </div>
+
       {!sitio && (
         <div className="neuro-card-sm p-4 text-center text-amber-600 text-sm">
-          Primero debes crear un restaurante en la seccion "Info"
+          Primero debes crear un restaurante en la seccion &quot;Info&quot;
         </div>
       )}
 
@@ -286,7 +352,7 @@ export function MenuTab({
         <div className="neuro-card-sm p-8 text-center">
           <UtensilsCrossed className="w-12 h-12 mx-auto mb-3 text-gray-300" />
           <p className="text-gray-500 mb-2">No hay categorias en el menu</p>
-          <p className="text-gray-400 text-xs">Haz clic en "Nueva categoria" para comenzar</p>
+          <p className="text-gray-400 text-xs">Haz clic en &quot;Nueva categoria&quot; para comenzar</p>
         </div>
       )}
 
