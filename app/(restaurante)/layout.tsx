@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, UtensilsCrossed, Loader2 } from 'lucide-react';
 import { RestaurantProvider, useRestaurant } from '@/lib/restaurant-context';
+import { defaultTextosNav } from '@/lib/database.types';
 import '@/app/_styles/neumorph-restaurant.css';
 
 // Componente interno que usa el context
@@ -12,7 +13,7 @@ function RestaurantLayoutContent({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const { config, loading } = useRestaurant();
+  const { config, loading, textos } = useRestaurant();
 
   // Escuchar navegacion desde el admin
   useEffect(() => {
@@ -47,12 +48,13 @@ function RestaurantLayoutContent({ children }: { children: React.ReactNode }) {
     document.title = nombre;
   }, [nombre]);
 
+  const nav = textos?.nav || defaultTextosNav;
   const navItems = [
-    { name: 'Inicio', path: '/' },
-    { name: 'Menu', path: '/menu' },
-    { name: 'Galeria', path: '/galeria' },
-    { name: 'Reservar', path: '/reservas' },
-    { name: 'Contacto', path: '/contacto' }
+    { name: nav.nav_inicio, path: '/' },
+    { name: nav.nav_menu, path: '/menu' },
+    { name: nav.nav_galeria, path: '/galeria' },
+    { name: nav.nav_reservas, path: '/reservas' },
+    { name: nav.nav_contacto, path: '/contacto' }
   ];
 
   const isActive = (path: string) => pathname === path;

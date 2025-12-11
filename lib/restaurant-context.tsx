@@ -13,11 +13,13 @@ import {
   TextosGaleria,
   TextosReservas,
   TextosContacto,
+  TextosNav,
   defaultTextosInicio,
   defaultTextosMenu,
   defaultTextosGaleria,
   defaultTextosReservas,
-  defaultTextosContacto
+  defaultTextosContacto,
+  defaultTextosNav
 } from './database.types';
 
 // Tipos para el contexto
@@ -27,6 +29,7 @@ interface RestaurantTextos {
   galeria: TextosGaleria;
   reservas: TextosReservas;
   contacto: TextosContacto;
+  nav: TextosNav;
 }
 
 interface RestaurantData {
@@ -57,7 +60,8 @@ const defaultTextos: RestaurantTextos = {
   menu: defaultTextosMenu,
   galeria: defaultTextosGaleria,
   reservas: defaultTextosReservas,
-  contacto: defaultTextosContacto
+  contacto: defaultTextosContacto,
+  nav: defaultTextosNav
 };
 
 const defaultContextValue: RestaurantContextValue = {
@@ -149,6 +153,8 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
             textosMap.reservas = { ...defaultTextosReservas, ...t.textos } as TextosReservas;
           } else if (t.pagina === 'contacto') {
             textosMap.contacto = { ...defaultTextosContacto, ...t.textos } as TextosContacto;
+          } else if (t.pagina === 'nav') {
+            textosMap.nav = { ...defaultTextosNav, ...t.textos } as TextosNav;
           }
         });
 
@@ -282,6 +288,13 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
           subtitulo: msgData.contacto_subtitulo,
           info_titulo: msgData.contacto_info_titulo,
           info_descripcion: msgData.contacto_info_descripcion
+        });
+        updateTextos('nav', {
+          nav_inicio: msgData.nav_inicio,
+          nav_menu: msgData.nav_menu,
+          nav_galeria: msgData.nav_galeria,
+          nav_reservas: msgData.nav_reservas,
+          nav_contacto: msgData.nav_contacto
         });
       }
 

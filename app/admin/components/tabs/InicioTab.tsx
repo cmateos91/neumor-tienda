@@ -7,6 +7,7 @@ import {
   Plus, Trash2,
   ChefHat, Award, Clock, MapPin, UtensilsCrossed, Wine, Star, Heart,
   Users, Leaf, Flame, Coffee, Sparkles,
+  LayoutPanelTop, PanelBottomClose,
   type LucideIcon
 } from 'lucide-react';
 import { FormRestaurante } from '../../hooks/useSitioData';
@@ -71,6 +72,60 @@ export function InicioTab({
 
   return (
     <div className="space-y-3 animate-fadeIn">
+      {/* ===== CABECERA ===== */}
+      <PageSection
+        id="cabecera"
+        label="Cabecera"
+        icon={LayoutPanelTop}
+        expanded={expandedPage === 'cabecera'}
+        onToggle={() => setExpandedPage(expandedPage === 'cabecera' ? null : 'cabecera')}
+      >
+        <SectionBlock title="Texto de cabecera">
+          <InputField
+            label="Nombre del restaurante (logo)"
+            field="nombre"
+            value={formRestaurante.nombre}
+            onChange={updateField}
+            placeholder="Nombre que aparece en la barra superior"
+          />
+        </SectionBlock>
+
+        <SectionBlock title="Secciones de navegación">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <InputField
+              label="Inicio"
+              field="nav_inicio"
+              value={formRestaurante.nav_inicio}
+              onChange={updateField}
+            />
+            <InputField
+              label="Menu"
+              field="nav_menu"
+              value={formRestaurante.nav_menu}
+              onChange={updateField}
+            />
+            <InputField
+              label="Galeria"
+              field="nav_galeria"
+              value={formRestaurante.nav_galeria}
+              onChange={updateField}
+            />
+            <InputField
+              label="Reservar"
+              field="nav_reservas"
+              value={formRestaurante.nav_reservas}
+              onChange={updateField}
+            />
+            <InputField
+              label="Contacto"
+              field="nav_contacto"
+              value={formRestaurante.nav_contacto}
+              onChange={updateField}
+            />
+          </div>
+        </SectionBlock>
+      </PageSection>
+
       {/* ===== INICIO ===== */}
       <PageSection
         id="inicio"
@@ -236,6 +291,56 @@ export function InicioTab({
               </div>
             )}
           </div>
+        </SectionBlock>
+      </PageSection>
+
+      {/* ===== PIE DE PAGINA ===== */}
+      <PageSection
+        id="footer"
+        label="Pie de pagina"
+        icon={PanelBottomClose}
+        expanded={expandedPage === 'footer'}
+        onToggle={() => setExpandedPage(expandedPage === 'footer' ? null : 'footer')}
+      >
+        <SectionBlock title="Contenido del pie">
+          <TextAreaField
+            label="Descripcion corta"
+            field="descripcion"
+            value={formRestaurante.descripcion}
+            onChange={updateField}
+            placeholder="Texto bajo el nombre en el pie"
+            rows={2}
+          />
+          <InputField
+            label="Horario semana"
+            field="horario_semana"
+            value={formRestaurante.horario_semana}
+            onChange={updateField}
+            placeholder="Ej: Lun-Vie 12:00 - 23:00"
+          />
+          <InputField
+            label="Horario fin de semana"
+            field="horario_finde"
+            value={formRestaurante.horario_finde}
+            onChange={updateField}
+            placeholder="Ej: Sab-Dom 12:00 - 01:00"
+          />
+          <InputField
+            label="Telefono principal"
+            field="telefono"
+            value={formRestaurante.telefono}
+            onChange={updateField}
+            placeholder="+34 ..."
+            type="tel"
+          />
+          <InputField
+            label="Email principal"
+            field="email"
+            value={formRestaurante.email}
+            onChange={updateField}
+            placeholder="contacto@restaurante.com"
+            type="email"
+          />
         </SectionBlock>
       </PageSection>
     </div>

@@ -25,6 +25,12 @@ export interface FormRestaurante {
   inicio_galeria_titulo: string;
   inicio_galeria_subtitulo: string;
   inicio_galeria_btn: string;
+  // Nav
+  nav_inicio: string;
+  nav_menu: string;
+  nav_galeria: string;
+  nav_reservas: string;
+  nav_contacto: string;
   // Menu
   menu_titulo: string;
   menu_subtitulo: string;
@@ -72,6 +78,11 @@ export const defaultFormRestaurante: FormRestaurante = {
   inicio_galeria_titulo: 'Ambiente Unico',
   inicio_galeria_subtitulo: 'Un espacio diseñado para crear momentos memorables',
   inicio_galeria_btn: 'Ver Galeria Completa',
+  nav_inicio: 'Inicio',
+  nav_menu: 'Menu',
+  nav_galeria: 'Galeria',
+  nav_reservas: 'Reservar',
+  nav_contacto: 'Contacto',
   menu_titulo: 'Nuestro Menú',
   menu_subtitulo: 'Descubre una selección de platos elaborados con ingredientes frescos y de temporada',
   menu_filtro_todos: 'Todos',

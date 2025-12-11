@@ -171,6 +171,14 @@ export interface TextosContacto {
   info_descripcion: string;
 }
 
+export interface TextosNav {
+  nav_inicio: string;
+  nav_menu: string;
+  nav_galeria: string;
+  nav_reservas: string;
+  nav_contacto: string;
+}
+
 // ============================================
 // TIPOS COMBINADOS PARA CARGAS COMPLETAS
 // ============================================
@@ -184,6 +192,7 @@ export interface SitioCompleto {
     galeria: TextosGaleria;
     reservas: TextosReservas;
     contacto: TextosContacto;
+    nav: TextosNav;
   };
 }
 
@@ -196,6 +205,7 @@ export interface RestauranteData {
     galeria: TextosGaleria;
     reservas: TextosReservas;
     contacto: TextosContacto;
+    nav: TextosNav;
   };
   categorias: SitioMenuCategoria[];
   menuItems: SitioMenuItem[];
@@ -295,4 +305,12 @@ export const defaultTextosContacto: TextosContacto = {
   subtitulo: 'Estamos aquí para atenderte',
   info_titulo: 'Cómo Llegar',
   info_descripcion: 'Ubicados en pleno corazón de la ciudad'
+};
+
+export const defaultTextosNav: TextosNav = {
+  nav_inicio: 'Inicio',
+  nav_menu: 'Menu',
+  nav_galeria: 'Galeria',
+  nav_reservas: 'Reservar',
+  nav_contacto: 'Contacto'
 };

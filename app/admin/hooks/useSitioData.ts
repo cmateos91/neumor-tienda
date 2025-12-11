@@ -68,6 +68,7 @@ export function useSitioData(): UseSitioDataReturn {
         const g = textosMap['galeria'] || {};
         const r = textosMap['reservas'] || {};
         const c = textosMap['contacto'] || {};
+        const nav = textosMap['nav'] || {};
 
         setFormRestaurante({
           nombre: config?.nombre || '', tagline: config?.tagline || '', descripcion: config?.descripcion || '',
@@ -77,6 +78,11 @@ export function useSitioData(): UseSitioDataReturn {
           inicio_galeria_titulo: i.galeria_titulo || 'Ambiente Unico',
           inicio_galeria_subtitulo: i.galeria_subtitulo || 'Un espacio diseñado para crear momentos memorables',
           inicio_galeria_btn: i.galeria_btn || 'Ver Galeria Completa',
+          nav_inicio: nav.nav_inicio || 'Inicio',
+          nav_menu: nav.nav_menu || 'Menu',
+          nav_galeria: nav.nav_galeria || 'Galeria',
+          nav_reservas: nav.nav_reservas || 'Reservar',
+          nav_contacto: nav.nav_contacto || 'Contacto',
           menu_titulo: m.titulo || 'Nuestro Menú',
           menu_subtitulo: m.subtitulo || 'Descubre una selección de platos elaborados con ingredientes frescos y de temporada',
           menu_filtro_todos: m.filtro_todos || 'Todos', menu_sin_items: m.sin_items || 'No hay items en esta categoria',
@@ -141,6 +147,7 @@ export function useSitioData(): UseSitioDataReturn {
 
       const textosUpdates = [
         { pagina: 'inicio', textos: { btn_menu: formRestaurante.inicio_btn_menu, btn_reservas: formRestaurante.inicio_btn_reservas, features_titulo: formRestaurante.inicio_features_titulo, features_subtitulo: formRestaurante.inicio_features_subtitulo, galeria_titulo: formRestaurante.inicio_galeria_titulo, galeria_subtitulo: formRestaurante.inicio_galeria_subtitulo, galeria_btn: formRestaurante.inicio_galeria_btn }},
+        { pagina: 'nav', textos: { nav_inicio: formRestaurante.nav_inicio, nav_menu: formRestaurante.nav_menu, nav_galeria: formRestaurante.nav_galeria, nav_reservas: formRestaurante.nav_reservas, nav_contacto: formRestaurante.nav_contacto }},
         { pagina: 'menu', textos: { titulo: formRestaurante.menu_titulo, subtitulo: formRestaurante.menu_subtitulo, filtro_todos: formRestaurante.menu_filtro_todos, sin_items: formRestaurante.menu_sin_items }},
         { pagina: 'galeria', textos: { titulo: formRestaurante.galeria_titulo, subtitulo: formRestaurante.galeria_subtitulo }},
         { pagina: 'reservas', textos: { titulo: formRestaurante.reservas_titulo, subtitulo: formRestaurante.reservas_subtitulo, exito_titulo: formRestaurante.reservas_exito_titulo, exito_mensaje: formRestaurante.reservas_exito_mensaje, btn_confirmar: formRestaurante.reservas_btn_confirmar, btn_enviando: formRestaurante.reservas_btn_enviando }},

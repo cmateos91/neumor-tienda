@@ -11,7 +11,7 @@ interface DevicePreviewProps {
 export const DevicePreview = forwardRef<HTMLIFrameElement, DevicePreviewProps>(
   function DevicePreview({ device, currentPage }, ref) {
     // Usar el src inicial solo una vez; la navegación posterior va por postMessage (SPA) para evitar recargas dobles
-    const initialSrc = React.useRef(currentPage);
+    const [initialSrc] = React.useState(() => currentPage);
 
     return (
       <div className="flex-1 neuro-card p-4 flex flex-col">
@@ -22,7 +22,7 @@ export const DevicePreview = forwardRef<HTMLIFrameElement, DevicePreviewProps>(
           >
             <iframe
               ref={ref}
-              src={initialSrc.current}
+              src={initialSrc}
               className="w-full h-full border-0"
               title="Preview"
             />
