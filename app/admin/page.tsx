@@ -390,7 +390,7 @@ export default function AdminEditor() {
           {/* Left Panel - Editor */}
           <div className="w-96 flex flex-col gap-4">
           {/* Page Builder Panel */}
-          {pageBuilderMode && (
+          {pageBuilderMode && pageLayout && (
             <PageBuilderPanel
               pageLayout={pageLayout}
               selectedSection={selectedSection}
