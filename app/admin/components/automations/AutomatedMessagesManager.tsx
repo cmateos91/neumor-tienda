@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   MessageSquare,
   Plus,
@@ -52,6 +53,10 @@ const channelLabels: Record<MessageChannel, string> = {
 };
 
 export function AutomatedMessagesManager({ sitioId }: AutomatedMessagesManagerProps) {
+  const searchParams = useSearchParams();
+  const connected = searchParams.get("connected");
+  const restauranteId = process.env.NEXT_PUBLIC_RESTAURANTE_ID;
+
   const {
     messages,
     loading,
@@ -96,6 +101,23 @@ export function AutomatedMessagesManager({ sitioId }: AutomatedMessagesManagerPr
     setEditingMessage(null);
   };
 
+  const handleConnectMeta = async () => {
+    try {
+      const res = await fetch(`/api/meta/connect?clienteId=${restauranteId}`);
+      const data = await res.json();
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert("Error: No se recibió URL de conexión. Revisa la consola.");
+        console.error("Respuesta:", data);
+      }
+    } catch (err) {
+      alert("Error de conexión con el servidor.");
+      console.error(err);
+    }
+  };
+
   if (loading) {
     return (
       <div className="neuro-card p-8 text-center">
@@ -126,13 +148,30 @@ export function AutomatedMessagesManager({ sitioId }: AutomatedMessagesManagerPr
             Configura respuestas automaticas para tus redes sociales
           </p>
         </div>
-        <button
-          onClick={handleCreate}
-          className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Nuevo Mensaje
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleConnectMeta}
+            disabled={connected === "meta_ok"}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+              connected === "meta_ok"
+                ? 'bg-green-500 text-white cursor-not-allowed opacity-75'
+                : 'bg-[#1877F2] text-white hover:bg-[#166fe5]'
+            }`}
+            title={connected === "meta_ok" ? "Ya conectado con Meta" : "Conectar con Meta"}
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+            </svg>
+            {connected === "meta_ok" ? 'Conectado' : 'Conectar Meta'}
+          </button>
+          <button
+            onClick={handleCreate}
+            className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Nuevo Mensaje
+          </button>
+        </div>
       </div>
 
       {/* Lista de mensajes */}
