@@ -34,6 +34,7 @@ import {
 
 // Types
 import type { AdminView } from './components';
+import type { PageSection } from '@/lib/page-builder.types';
 
 // Iconos para los tabs
 const tabIcons = {
@@ -53,6 +54,10 @@ export default function AdminEditor() {
   // Ref para el scroll horizontal de tabs
   const tabsScrollRef = useRef<HTMLDivElement>(null);
 
+  // Ref para guardar las últimas sections del pageLayout recibidas del iframe
+  // Esto evita race conditions con el estado asíncrono
+  const latestPageLayoutRef = useRef<PageSection[] | null>(null);
+
   // Hook de datos
   const {
     sitio,
@@ -61,10 +66,12 @@ export default function AdminEditor() {
     galeria,
     features,
     formRestaurante,
+    pageLayout,
     loading,
     setFormRestaurante,
     setGaleria,
     setMenuItems,
+    setPageLayout,
     saveRestaurante,
     addCategoria,
     addMenuItem,
@@ -98,11 +105,8 @@ export default function AdminEditor() {
     setShowSaveModal,
     expandedPage,
     setExpandedPage,
-    pageLayout,
-    setPageLayout,
     selectedSection,
     setSelectedSection,
-    toggleSectionVisibility,
     navigateToInput
   } = useAdminUI();
 
@@ -156,6 +160,10 @@ export default function AdminEditor() {
         navigateToInput(nav.tab, nav.page, nav.inputName);
       },
       onLayoutChanged: (sections) => {
+        console.log('[Admin] Recibiendo layout actualizado desde iframe:', sections);
+        // Guardar en ref inmediatamente (síncrono) para evitar race conditions
+        latestPageLayoutRef.current = sections;
+        // Actualizar estado para la UI
         setPageLayout(sections);
       },
       onSectionSelected: (sectionId) => {
@@ -180,6 +188,13 @@ export default function AdminEditor() {
     sendRestauranteData(formRestaurante);
   }, [formRestaurante, sendRestauranteData]);
 
+  // Sincronizar ref con pageLayout cuando se carga desde la BD
+  useEffect(() => {
+    if (pageLayout) {
+      latestPageLayoutRef.current = pageLayout;
+    }
+  }, [pageLayout]);
+
   useEffect(() => {
     // Filtrar items marcados para eliminación
     const filteredMenuItems = menuItems.filter(item => !isMarkedForDeletion(item.id));
@@ -197,6 +212,14 @@ export default function AdminEditor() {
   useEffect(() => {
     sendFeaturesData(features);
   }, [features, sendFeaturesData]);
+
+  // Sincronizar pageLayout con iframe
+  useEffect(() => {
+    if (pageLayout) {
+      console.log('[Admin] Enviando pageLayout al iframe:', pageLayout);
+      sendPageBuilderCommand('update-layout', { sections: pageLayout });
+    }
+  }, [pageLayout, sendPageBuilderCommand]);
 
   // Sincronizar activeTab → iframe (navegar usando SPA, sin recargar)
   useEffect(() => {
@@ -293,9 +316,13 @@ export default function AdminEditor() {
       }
 
       // 3. Guardar con los datos actualizados (excluyendo eliminados)
+      // Usar la ref para evitar race conditions con el estado asíncrono
+      const pageLayoutToSave = latestPageLayoutRef.current || pageLayout;
+      console.log('[Admin] Guardando - Ref:', latestPageLayoutRef.current ? 'tiene valor' : 'null', '- Estado:', pageLayout ? 'tiene valor' : 'null', '- Usando:', pageLayoutToSave === latestPageLayoutRef.current ? 'REF' : 'ESTADO');
       const success = await saveRestaurante({
         galeria: updatedGaleria,
-        menuItems: updatedMenuItems
+        menuItems: updatedMenuItems,
+        pageLayout: pageLayoutToSave || undefined
       });
 
       if (success) {
@@ -368,8 +395,15 @@ export default function AdminEditor() {
               pageLayout={pageLayout}
               selectedSection={selectedSection}
               onToggleVisibility={(sectionId) => {
-                toggleSectionVisibility(sectionId);
-                sendPageBuilderCommand('update-layout', { sections: pageLayout });
+                // Calcular el nuevo layout con la visibilidad actualizada
+                const updatedLayout = pageLayout.map(s =>
+                  s.id === sectionId ? { ...s, visible: !s.visible } : s
+                );
+                console.log('[Admin] Toggle visibilidad, nuevo layout:', updatedLayout);
+                // Actualizar el estado local
+                setPageLayout(updatedLayout);
+                // Enviar el layout ACTUALIZADO al iframe
+                sendPageBuilderCommand('update-layout', { sections: updatedLayout });
               }}
             />
           )}
@@ -535,12 +569,15 @@ export default function AdminEditor() {
 
 // Componente del Page Builder Panel
 interface PageBuilderPanelProps {
-  pageLayout: { id: string; type: string; visible: boolean; order: number }[];
+  pageLayout: { id: string; type: string; visible: boolean; order: number; children?: any[] }[];
   selectedSection: string | null;
   onToggleVisibility: (sectionId: string) => void;
 }
 
 function PageBuilderPanel({ pageLayout, selectedSection, onToggleVisibility }: PageBuilderPanelProps) {
+  const selectedSectionData = pageLayout.find(s => s.id === selectedSection);
+  const hasChildren = selectedSectionData?.children && selectedSectionData.children.length > 0;
+
   return (
     <div className="neuro-card p-4 animate-fadeIn">
       <div className="flex items-center gap-2 mb-4">
@@ -551,32 +588,70 @@ function PageBuilderPanel({ pageLayout, selectedSection, onToggleVisibility }: P
       <p className="text-xs text-gray-500 mb-4">
         Haz clic en una seccion del preview y arrastrala para reordenar.
       </p>
+
+      {/* Secciones */}
       <div className="space-y-2">
         {pageLayout.sort((a, b) => a.order - b.order).map((section, index) => (
-          <div
-            key={section.id}
-            className={`neuro-card-sm p-3 flex items-center gap-3 transition-all ${
-              selectedSection === section.id ? 'ring-2 ring-[#d4af37]' : ''
-            }`}
-          >
-            <div className="neuro-inset w-8 h-8 rounded-lg flex items-center justify-center text-gray-400">
-              <GripVertical className="w-4 h-4" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-700 capitalize">{section.type.replace('-', ' ')}</p>
-              <p className="text-xs text-gray-400">Orden: {index + 1}</p>
-            </div>
-            <button
-              onClick={() => onToggleVisibility(section.id)}
-              className={`p-1.5 rounded-lg transition-colors ${
-                section.visible ? 'text-green-500 hover:bg-green-50' : 'text-gray-300 hover:bg-gray-100'
+          <div key={section.id}>
+            <div
+              className={`neuro-card-sm p-3 flex items-center gap-3 transition-all ${
+                selectedSection === section.id ? 'ring-2 ring-[#d4af37]' : ''
               }`}
             >
-              {section.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-            </button>
+              <div className="neuro-inset w-8 h-8 rounded-lg flex items-center justify-center text-gray-400">
+                <GripVertical className="w-4 h-4" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-700 capitalize">{section.type.replace('-', ' ')}</p>
+                <p className="text-xs text-gray-400">Orden: {index + 1}</p>
+              </div>
+              <button
+                onClick={() => onToggleVisibility(section.id)}
+                className={`p-1.5 rounded-lg transition-colors ${
+                  section.visible ? 'text-green-500 hover:bg-green-50' : 'text-gray-300 hover:bg-gray-100'
+                }`}
+              >
+                {section.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
         ))}
       </div>
+
+      {/* Componentes de la sección seleccionada */}
+      {hasChildren && (
+        <div className="mt-4 pt-4 border-t border-gray-100 animate-fadeIn">
+          <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-[#d4af37]" />
+            Componentes del Hero
+          </h4>
+          <div className="space-y-2">
+            {selectedSectionData.children!.sort((a, b) => a.order - b.order).map((component, index) => (
+              <div
+                key={component.id}
+                className="neuro-card-sm p-2.5 flex items-center gap-2 text-sm"
+              >
+                <div className="neuro-inset w-6 h-6 rounded flex items-center justify-center">
+                  <GripVertical className="w-3 h-3 text-gray-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-gray-700 capitalize">
+                    {component.type}
+                  </p>
+                  <p className="text-xs text-gray-400">#{index + 1}</p>
+                </div>
+                <button
+                  className="p-1 rounded hover:bg-gray-100 transition-colors"
+                  title="Ocultar componente"
+                >
+                  <Eye className="w-3 h-3 text-gray-400" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="mt-4 pt-4 border-t border-gray-100">
         <p className="text-xs text-gray-400 text-center">
           Los cambios de layout se guardan al publicar

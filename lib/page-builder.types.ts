@@ -94,7 +94,70 @@ export const defaultHomeLayout: PageLayout = {
       style: {
         padding: '3rem',
         borderRadius: '3rem'
-      }
+      },
+      children: [
+        {
+          id: 'hero-icon',
+          type: 'icon',
+          order: 0,
+          props: {
+            iconName: 'ChefHat',
+            size: 'large'
+          },
+          style: {
+            textAlign: 'center'
+          }
+        },
+        {
+          id: 'hero-title',
+          type: 'heading',
+          order: 1,
+          props: {
+            text: 'nombre',
+            level: 1,
+            elementId: 'inicio.hero.nombre'
+          },
+          style: {
+            textAlign: 'center',
+            fontSize: '3rem'
+          }
+        },
+        {
+          id: 'hero-subtitle',
+          type: 'paragraph',
+          order: 2,
+          props: {
+            text: 'tagline',
+            elementId: 'inicio.hero.tagline'
+          },
+          style: {
+            textAlign: 'center',
+            fontSize: '1.25rem'
+          }
+        },
+        {
+          id: 'hero-btn-menu',
+          type: 'button',
+          order: 3,
+          props: {
+            text: 'btn_menu',
+            href: '/menu',
+            variant: 'primary',
+            elementId: 'inicio.hero.btn_menu'
+          }
+        },
+        {
+          id: 'hero-btn-reservas',
+          type: 'button',
+          order: 4,
+          props: {
+            text: 'btn_reservas',
+            href: '/reservas',
+            variant: 'secondary',
+            elementId: 'inicio.hero.btn_reservas'
+          }
+        }
+      ]
     },
     {
       id: 'features',

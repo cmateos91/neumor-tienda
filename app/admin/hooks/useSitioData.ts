@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Sitio, SitioConfig, SitioTextos, SitioMenuCategoria, SitioMenuItem, SitioGaleria, SitioFeature } from '@/lib/database.types';
+import type { PageSection } from '@/lib/page-builder.types';
+import { defaultHomeLayout } from '@/lib/page-builder.types';
 
 // Tipos
 import {
@@ -29,6 +31,7 @@ export function useSitioData(): UseSitioDataReturn {
   const [menuItems, setMenuItems] = useState<SitioMenuItem[]>([]);
   const [galeria, setGaleria] = useState<SitioGaleria[]>([]);
   const [features, setFeatures] = useState<SitioFeature[]>([]);
+  const [pageLayout, setPageLayout] = useState<PageSection[] | null>(null);
 
   // ===== CARGAR DATOS =====
   const loadAllData = useCallback(async () => {
@@ -54,7 +57,17 @@ export function useSitioData(): UseSitioDataReturn {
         ]);
 
         const config = configRes.data;
-        if (config) setSitioConfig(config);
+        if (config) {
+          setSitioConfig(config);
+          // Cargar pageLayout desde la BD o usar default
+          if (config.page_layout?.sections) {
+            console.log('[useSitioData] Cargando pageLayout desde BD:', config.page_layout.sections);
+            setPageLayout(config.page_layout.sections);
+          } else {
+            console.log('[useSitioData] Usando pageLayout por defecto');
+            setPageLayout(defaultHomeLayout.sections);
+          }
+        }
 
         const textosMap: Record<string, Record<string, string>> = {};
         if (textosRes.data) {
@@ -127,14 +140,25 @@ export function useSitioData(): UseSitioDataReturn {
 
   // ===== GUARDAR =====
   const saveRestaurante = useCallback(async (updatedData?: {
-    galeria?: SitioGaleria[]; menuItems?: SitioMenuItem[];
+    galeria?: SitioGaleria[]; menuItems?: SitioMenuItem[]; pageLayout?: PageSection[];
   }): Promise<boolean> => {
     if (!sitio) return false;
     const galeriaToSave = updatedData?.galeria ?? galeria;
     const menuItemsToSave = updatedData?.menuItems ?? menuItems;
+    const pageLayoutSections = updatedData?.pageLayout ?? pageLayout;
+
+    // Crear objeto PageLayout completo si hay secciones
+    const pageLayoutToSave = pageLayoutSections ? {
+      pageId: 'inicio',
+      pageName: 'Inicio',
+      sections: pageLayoutSections,
+      lastModified: new Date().toISOString()
+    } : null;
+
+    console.log('[useSitioData] Guardando pageLayout con sections:', JSON.stringify(pageLayoutSections, null, 2));
 
     try {
-      await supabase.from('sitio_config').update({
+      const { data: configData, error: configError } = await supabase.from('sitio_config').update({
         nombre: formRestaurante.nombre, tagline: formRestaurante.tagline, descripcion: formRestaurante.descripcion,
         telefono: formRestaurante.telefono, telefono_secundario: formRestaurante.telefono_secundario,
         email: formRestaurante.email, email_secundario: formRestaurante.email_reservas,
@@ -142,8 +166,15 @@ export function useSitioData(): UseSitioDataReturn {
         direccion_cp: formRestaurante.direccion_cp, direccion_pais: formRestaurante.direccion_pais,
         horario_semana: formRestaurante.horario_semana, horario_finde: formRestaurante.horario_finde,
         instagram: formRestaurante.instagram, facebook: formRestaurante.facebook, twitter: formRestaurante.twitter,
-        mapa_embed_url: formRestaurante.mapa_embed_url
+        mapa_embed_url: formRestaurante.mapa_embed_url,
+        page_layout: pageLayoutToSave
       }).eq('sitio_id', sitio.id);
+
+      if (configError) {
+        console.error('[useSitioData] Error al guardar config:', configError);
+        throw configError;
+      }
+      console.log('[useSitioData] Config guardado exitosamente:', configData);
 
       const textosUpdates = [
         { pagina: 'inicio', textos: { btn_menu: formRestaurante.inicio_btn_menu, btn_reservas: formRestaurante.inicio_btn_reservas, features_titulo: formRestaurante.inicio_features_titulo, features_subtitulo: formRestaurante.inicio_features_subtitulo, galeria_titulo: formRestaurante.inicio_galeria_titulo, galeria_subtitulo: formRestaurante.inicio_galeria_subtitulo, galeria_btn: formRestaurante.inicio_galeria_btn }},
@@ -165,7 +196,7 @@ export function useSitioData(): UseSitioDataReturn {
       console.error('Error saving:', err);
       return false;
     }
-  }, [sitio, formRestaurante, menuItems, galeria, features]);
+  }, [sitio, formRestaurante, menuItems, galeria, features, pageLayout]);
 
   // ===== CRUD CATEGORÍAS =====
   const addCategoria = useCallback(async (nombre: string): Promise<boolean> => {
@@ -270,8 +301,8 @@ export function useSitioData(): UseSitioDataReturn {
   useEffect(() => { loadAllData(); }, [loadAllData]);
 
   return {
-    sitio, sitioConfig, sitioTextos, categorias, menuItems, galeria, features, formRestaurante, loading, error,
-    loadAllData, setFormRestaurante, setCategorias, setMenuItems, setGaleria, setFeatures, saveRestaurante,
+    sitio, sitioConfig, sitioTextos, categorias, menuItems, galeria, features, formRestaurante, pageLayout, loading, error,
+    loadAllData, setFormRestaurante, setCategorias, setMenuItems, setGaleria, setFeatures, setPageLayout, saveRestaurante,
     addCategoria, addMenuItem, updateMenuItem, deleteMenuItem,
     addGaleriaItem, toggleGaleriaHome, toggleGaleriaVisible, updateGaleriaItem, deleteGaleriaItem,
     addFeature, updateFeature, deleteFeature

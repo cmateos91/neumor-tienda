@@ -8,6 +8,7 @@ import type {
   SitioGaleria,
   SitioFeature
 } from '@/lib/database.types';
+import type { PageSection } from '@/lib/page-builder.types';
 
 // ===== FORM RESTAURANTE =====
 
@@ -126,6 +127,7 @@ export interface SitioDataState {
   galeria: SitioGaleria[];
   features: SitioFeature[];
   formRestaurante: FormRestaurante;
+  pageLayout: PageSection[] | null;
   loading: boolean;
   error: string | null;
 }
@@ -160,7 +162,8 @@ export interface FeaturesActions {
 export interface SitioDataActions extends MenuItemsActions, GaleriaActions, FeaturesActions {
   loadAllData: () => Promise<void>;
   setFormRestaurante: React.Dispatch<React.SetStateAction<FormRestaurante>>;
-  saveRestaurante: (updatedData?: { galeria?: SitioGaleria[]; menuItems?: SitioMenuItem[] }) => Promise<boolean>;
+  setPageLayout: React.Dispatch<React.SetStateAction<PageSection[] | null>>;
+  saveRestaurante: (updatedData?: { galeria?: SitioGaleria[]; menuItems?: SitioMenuItem[]; pageLayout?: PageSection[] }) => Promise<boolean>;
 }
 
 export type UseSitioDataReturn = SitioDataState & SitioDataActions;

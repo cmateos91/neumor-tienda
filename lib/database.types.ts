@@ -43,6 +43,7 @@ export interface SitioConfig {
   tiktok: string | null;
   web: string | null;
   mapa_embed_url: string | null;
+  page_layout: any | null; // PageLayout del Page Builder
   created_at: string;
   updated_at: string;
 }

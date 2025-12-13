@@ -21,6 +21,7 @@ import {
   defaultTextosContacto,
   defaultTextosNav
 } from './database.types';
+import { PageSection, defaultHomeLayout } from './page-builder.types';
 
 // Tipos para el contexto
 interface RestaurantTextos {
@@ -41,6 +42,7 @@ interface RestaurantData {
   galeria: SitioGaleria[];
   galeriaHome: SitioGaleria[];
   features: SitioFeature[];
+  pageLayout: PageSection[];
 }
 
 interface RestaurantContextValue extends RestaurantData {
@@ -73,6 +75,7 @@ const defaultContextValue: RestaurantContextValue = {
   galeria: [],
   galeriaHome: [],
   features: [],
+  pageLayout: defaultHomeLayout.sections,
   loading: true,
   error: null,
   updateConfig: () => {},
@@ -108,7 +111,8 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
     menuItems: [],
     galeria: [],
     galeriaHome: [],
-    features: []
+    features: [],
+    pageLayout: defaultHomeLayout.sections
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -162,16 +166,23 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         const galeriaItems = galeriaRes.data || [];
         const galeriaHome = galeriaItems.filter(g => g.es_home);
 
-        // 5. Actualizar estado
+        // 5. Extraer pageLayout desde config o usar default
+        const config = configRes.data;
+        const pageLayoutSections = config?.page_layout?.sections || defaultHomeLayout.sections;
+
+        console.log('[RestaurantContext] Cargando pageLayout:', pageLayoutSections);
+
+        // 6. Actualizar estado
         setData({
           sitioId: sitio.id,
-          config: configRes.data,
+          config: config,
           textos: textosMap,
           categorias: categoriasRes.data || [],
           menuItems: itemsRes.data || [],
           galeria: galeriaItems,
           galeriaHome,
-          features: featuresRes.data || []
+          features: featuresRes.data || [],
+          pageLayout: pageLayoutSections
         });
 
       } catch (err) {

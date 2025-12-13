@@ -8,6 +8,8 @@ import { DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useS
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import EditableWrapper from './_components/EditableWrapper';
 import EditableSection from './_components/EditableSection';
+import EditableComponent from './_components/EditableComponent';
+import { ComponentRenderer } from './_components/PageBuilderComponents';
 import { PageSection, defaultHomeLayout } from '@/lib/page-builder.types';
 import { useRestaurant } from '@/lib/restaurant-context';
 
@@ -16,10 +18,10 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 };
 
 export default function Home() {
-  const { config, textos, features, galeriaHome } = useRestaurant();
+  const { config, textos, features, galeriaHome, pageLayout: contextPageLayout } = useRestaurant();
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
-  const [sections, setSections] = useState<PageSection[]>(defaultHomeLayout.sections);
+  const [sections, setSections] = useState<PageSection[]>(contextPageLayout);
 
   // Configurar sensor con delay para distinguir click de drag
   const sensors = useSensors(
@@ -30,6 +32,16 @@ export default function Home() {
     })
   );
 
+  // Sincronizar sections con el pageLayout del contexto solo al inicio
+  useEffect(() => {
+    // Solo sincronizar si no estamos en modo edición
+    // En modo edición, los cambios vienen del admin via mensajes
+    if (!isEditMode) {
+      console.log('[Restaurante Page] Sincronizando sections desde contexto:', contextPageLayout);
+      setSections(contextPageLayout);
+    }
+  }, [contextPageLayout, isEditMode]);
+
   // Manejar mensajes del admin (solo para page builder)
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -39,15 +51,18 @@ export default function Home() {
 
       // Entrar/salir modo edición
       if (type === 'pagebuilder:enter-edit') {
+        console.log('[Restaurante Page] Entrando en modo edición');
         setIsEditMode(true);
       }
       if (type === 'pagebuilder:exit-edit') {
+        console.log('[Restaurante Page] Saliendo de modo edición');
         setIsEditMode(false);
         setSelectedSectionId(null);
       }
 
       // Actualizar layout desde admin
       if (type === 'pagebuilder:update-layout') {
+        console.log('[Restaurante Page] Recibiendo update-layout desde admin:', msgData?.sections);
         if (msgData?.sections) {
           setSections(msgData.sections);
         }
@@ -60,9 +75,10 @@ export default function Home() {
 
   // Notificar al admin cuando cambia el layout
   const notifyLayoutChange = useCallback((newSections: PageSection[]) => {
+    console.log('[Restaurante Page] Notificando cambio de layout al admin:', JSON.stringify(newSections, null, 2));
     window.parent.postMessage({
       type: 'preview:layout-changed',
-      sections: newSections
+      data: { sections: newSections }  // Envolver sections en data
     }, window.location.origin);
   }, []);
 
@@ -70,13 +86,14 @@ export default function Home() {
   const notifySelection = useCallback((sectionId: string | null) => {
     window.parent.postMessage({
       type: 'preview:section-selected',
-      sectionId
+      data: { sectionId }  // Envolver en data para consistencia
     }, window.location.origin);
   }, []);
 
-  // Manejar fin de drag
+  // Manejar fin de drag de secciones
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    console.log('[Restaurante Page] handleDragEnd - active:', active.id, 'over:', over?.id);
 
     if (over && active.id !== over.id) {
       setSections((items) => {
@@ -88,6 +105,31 @@ export default function Home() {
         }));
         notifyLayoutChange(newItems);
         return newItems;
+      });
+    }
+  };
+
+  // Manejar fin de drag de componentes dentro de una sección
+  const handleComponentDragEnd = (event: DragEndEvent, sectionId: string) => {
+    const { active, over } = event;
+    console.log('[Restaurante Page] handleComponentDragEnd - section:', sectionId, 'active:', active.id, 'over:', over?.id);
+
+    if (over && active.id !== over.id) {
+      setSections((sections) => {
+        const updatedSections = sections.map((section) => {
+          if (section.id === sectionId && section.children) {
+            const oldIndex = section.children.findIndex(item => item.id === active.id);
+            const newIndex = section.children.findIndex(item => item.id === over.id);
+            const newChildren = arrayMove(section.children, oldIndex, newIndex).map((item, index) => ({
+              ...item,
+              order: index
+            }));
+            return { ...section, children: newChildren };
+          }
+          return section;
+        });
+        notifyLayoutChange(updatedSections);
+        return updatedSections;
       });
     }
   };
@@ -116,6 +158,62 @@ export default function Home() {
   const renderSection = (section: PageSection) => {
     switch (section.type) {
       case 'hero':
+        // Si hay children definidos, renderizar dinámicamente respetando el orden
+        if (section.children && section.children.length > 0) {
+          const sortedChildren = [...section.children].sort((a, b) => a.order - b.order);
+          console.log('[Restaurante Page] Renderizando hero con children:', sortedChildren.map(c => `${c.id}:${c.order}`).join(', '));
+
+          return (
+            <section key={section.id} className="px-4 pt-12 pb-20">
+              <div className="max-w-7xl mx-auto">
+                <div className="text-center space-y-8">
+                  <div className="neuro-flat rounded-[3rem] p-12 md:p-20 relative">
+                    {isEditMode && (
+                      <div className="absolute top-4 right-4 bg-[#d4af37]/10 text-[#d4af37] px-3 py-1 rounded-full text-xs font-medium">
+                        Modo Edición: Arrastra para reordenar
+                      </div>
+                    )}
+
+                    {isEditMode ? (
+                      // Modo Edit: con drag & drop
+                      <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={(event) => handleComponentDragEnd(event, section.id)}
+                      >
+                        <SortableContext
+                          items={sortedChildren.map(c => c.id)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          <div className="space-y-6 pl-8">
+                            {sortedChildren.map((child) => (
+                              <EditableComponent
+                                key={child.id}
+                                id={child.id}
+                                isEditMode={true}
+                              >
+                                <ComponentRenderer component={child} isEditMode={true} />
+                              </EditableComponent>
+                            ))}
+                          </div>
+                        </SortableContext>
+                      </DndContext>
+                    ) : (
+                      // Modo Normal: sin drag & drop pero respetando orden
+                      <div className="space-y-6">
+                        {sortedChildren.map((child) => (
+                          <ComponentRenderer key={child.id} component={child} isEditMode={false} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </section>
+          );
+        }
+
+        // Fallback: renderizado hardcodeado si no hay children (para compatibilidad)
         return (
           <section key={section.id} className="px-4 pt-12 pb-20">
             <div className="max-w-7xl mx-auto">

@@ -43,7 +43,6 @@ export interface AdminUIState {
   showSaveModal: boolean;
   expandedPage: string | null;
   expandedSections: Record<string, boolean>;
-  pageLayout: PageSection[];
   selectedSection: string | null;
 }
 
@@ -60,9 +59,7 @@ export interface AdminUIActions {
   setShowSaveModal: (show: boolean) => void;
   setExpandedPage: (page: string | null) => void;
   toggleExpandedSection: (section: string) => void;
-  setPageLayout: React.Dispatch<React.SetStateAction<PageSection[]>>;
   setSelectedSection: (sectionId: string | null) => void;
-  toggleSectionVisibility: (sectionId: string) => void;
   navigateToInput: (tab: AdminTab, page?: string, inputName?: string) => void;
 }
 
@@ -85,7 +82,6 @@ export function useAdminUI(): UseAdminUIReturn {
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
   // Estado de Page Builder
-  const [pageLayout, setPageLayout] = useState<PageSection[]>(defaultHomeLayout.sections);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
 
   // Mostrar mensaje temporal
@@ -112,13 +108,6 @@ export function useAdminUI(): UseAdminUIReturn {
       ...prev,
       [section]: !prev[section]
     }));
-  }, []);
-
-  // Toggle visibilidad de seccion en page builder
-  const toggleSectionVisibility = useCallback((sectionId: string) => {
-    setPageLayout(prev => prev.map(s =>
-      s.id === sectionId ? { ...s, visible: !s.visible } : s
-    ));
   }, []);
 
   // Navegar a un input especifico
@@ -154,7 +143,6 @@ export function useAdminUI(): UseAdminUIReturn {
     showSaveModal,
     expandedPage,
     expandedSections,
-    pageLayout,
     selectedSection,
     // Acciones
     setActiveTab,
@@ -168,9 +156,7 @@ export function useAdminUI(): UseAdminUIReturn {
     setShowSaveModal,
     setExpandedPage,
     toggleExpandedSection,
-    setPageLayout,
     setSelectedSection,
-    toggleSectionVisibility,
     navigateToInput
   };
 }
