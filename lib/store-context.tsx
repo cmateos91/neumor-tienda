@@ -121,18 +121,28 @@ export function StoreProvider({ children }: StoreProviderProps) {
   useEffect(() => {
     async function loadAllData() {
       try {
-        // 1. Obtener sitio activo
-        const { data: sitio, error: sitioError } = await supabase
-          .from('sitios')
-          .select('id')
-          .eq('activo', true)
-          .limit(1)
-          .single();
+        // 1. Obtener sitio según SLUG
+        const slug = process.env.NEXT_PUBLIC_SITIO_SLUG;
+        console.log('[StoreContext] Buscando sitio con slug:', slug);
+
+        let query = supabase.from('sitios').select('id');
+
+        if (slug) {
+          query = query.eq('slug', slug);
+        } else {
+          console.warn('[StoreContext] No hay NEXT_PUBLIC_SITIO_SLUG, usando primer sitio activo');
+          query = query.eq('activo', true).limit(1);
+        }
+
+        const { data: sitio, error: sitioError } = await query.single();
 
         if (sitioError || !sitio) {
+          console.error('[StoreContext] Error cargando sitio:', sitioError);
           setLoading(false);
           return;
         }
+
+        console.log('[StoreContext] Sitio cargado, ID:', sitio.id);
 
         // 2. Cargar todo en paralelo
         const [configRes, textosRes, categoriasRes, itemsRes, galeriaRes, featuresRes] = await Promise.all([
