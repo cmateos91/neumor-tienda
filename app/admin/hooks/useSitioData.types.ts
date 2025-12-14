@@ -17,7 +17,7 @@ export interface FormTienda {
   nombre: string;
   tagline: string;
   descripcion: string;
-  inicio_btn_menu: string;
+  inicio_btn_productos: string;
   inicio_btn_pedidos: string;
   // Inicio - Seccion Features
   inicio_features_titulo: string;
@@ -28,15 +28,15 @@ export interface FormTienda {
   inicio_galeria_btn: string;
   // Nav
   nav_inicio: string;
-  nav_menu: string;
+  nav_productos: string;
   nav_galeria: string;
   nav_pedidos: string;
   nav_contacto: string;
-  // Menu
-  menu_titulo: string;
-  menu_subtitulo: string;
-  menu_filtro_todos: string;
-  menu_sin_items: string;
+  // Productos
+  productos_titulo: string;
+  productos_subtitulo: string;
+  productos_filtro_todos: string;
+  productos_sin_items: string;
   // Galeria
   galeria_titulo: string;
   galeria_subtitulo: string;
@@ -72,22 +72,22 @@ export const defaultFormTienda: FormTienda = {
   nombre: '',
   tagline: '',
   descripcion: '',
-  inicio_btn_menu: 'Ver Menu',
-  inicio_btn_pedidos: 'Pedidor Mesa',
+  inicio_btn_productos: 'Ver Productos',
+  inicio_btn_pedidos: 'Hacer Pedido',
   inicio_features_titulo: 'Por Que Elegirnos',
   inicio_features_subtitulo: 'Comprometidos con la excelencia en cada detalle',
   inicio_galeria_titulo: 'Ambiente Unico',
   inicio_galeria_subtitulo: 'Un espacio diseñado para crear momentos memorables',
   inicio_galeria_btn: 'Ver Galeria Completa',
   nav_inicio: 'Inicio',
-  nav_menu: 'Menu',
+  nav_productos: 'Productos',
   nav_galeria: 'Galeria',
   nav_pedidos: 'Pedidor',
   nav_contacto: 'Contacto',
-  menu_titulo: 'Nuestro Menú',
-  menu_subtitulo: 'Descubre una selección de platos elaborados con ingredientes frescos y de temporada',
-  menu_filtro_todos: 'Todos',
-  menu_sin_items: 'No hay items en esta categoria',
+  productos_titulo: 'Nuestros Productos',
+  productos_subtitulo: 'Descubre nuestra selección de productos de calidad',
+  productos_filtro_todos: 'Todos',
+  productos_sin_items: 'No hay items en esta categoria',
   galeria_titulo: 'Galería',
   galeria_subtitulo: 'Déjate inspirar por nuestros platos y ambiente',
   pedidos_titulo: 'Pedido tu Mesa',

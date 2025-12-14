@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { getSitio } from '@/lib/store-data';
 import { SitioPedido, EstadoPedido } from '@/lib/database.types';
 import { Loader2, Calendar, Clock, Users, Phone, Mail, FileText, Check, X, Trash2 } from 'lucide-react';
 
@@ -17,12 +18,7 @@ export default function AdminPedidos() {
 
   async function loadData() {
     try {
-      const { data: sitio } = await supabase
-        .from('sitios')
-        .select('id')
-        .eq('activo', true)
-        .limit(1)
-        .single();
+      const sitio = await getSitio();
 
       if (sitio) {
         setSitioId(sitio.id);

@@ -159,11 +159,11 @@ export function StoreProvider({ children }: StoreProviderProps) {
         textosRes.data?.forEach((t: { pagina: string; textos: Record<string, string> }) => {
           if (t.pagina === 'inicio') {
             textosMap.inicio = { ...defaultTextosInicio, ...t.textos } as TextosInicio;
-          } else if (t.pagina === 'menu') {
+          } else if (t.pagina === 'productos') {
             textosMap.menu = { ...defaultTextosMenu, ...t.textos } as TextosMenu;
           } else if (t.pagina === 'galeria') {
             textosMap.galeria = { ...defaultTextosGaleria, ...t.textos } as TextosGaleria;
-          } else if (t.pagina === 'reservas') {
+          } else if (t.pagina === 'pedidos') {
             textosMap.pedidos = { ...defaultTextosPedidos, ...t.textos } as TextosPedidos;
           } else if (t.pagina === 'contacto') {
             textosMap.contacto = { ...defaultTextosContacto, ...t.textos } as TextosContacto;
@@ -254,7 +254,7 @@ export function StoreProvider({ children }: StoreProviderProps) {
 
       const { type, data: msgData } = event.data || {};
 
-      if (type === 'admin:restaurante' && msgData) {
+      if (type === 'admin:tienda' && msgData) {
         // Actualizar config
         updateConfig({
           nombre: msgData.nombre,
@@ -263,7 +263,7 @@ export function StoreProvider({ children }: StoreProviderProps) {
           telefono: msgData.telefono,
           telefono_secundario: msgData.telefono_secundario,
           email: msgData.email,
-          email_secundario: msgData.email_reservas,
+          email_secundario: msgData.email_pedidos,
           direccion_calle: msgData.direccion_calle,
           direccion_ciudad: msgData.direccion_ciudad,
           direccion_cp: msgData.direccion_cp,
@@ -278,8 +278,8 @@ export function StoreProvider({ children }: StoreProviderProps) {
 
         // Actualizar textos
         updateTextos('inicio', {
-          btn_productos: msgData.inicio_btn_menu,
-          btn_pedidos: msgData.inicio_btn_reservas,
+          btn_productos: msgData.inicio_btn_productos,
+          btn_pedidos: msgData.inicio_btn_pedidos,
           features_titulo: msgData.inicio_features_titulo,
           features_subtitulo: msgData.inicio_features_subtitulo,
           galeria_titulo: msgData.inicio_galeria_titulo,
@@ -287,22 +287,22 @@ export function StoreProvider({ children }: StoreProviderProps) {
           galeria_btn: msgData.inicio_galeria_btn
         });
         updateTextos('menu', {
-          titulo: msgData.menu_titulo,
-          subtitulo: msgData.menu_subtitulo,
-          filtro_todos: msgData.menu_filtro_todos,
-          sin_items: msgData.menu_sin_items
+          titulo: msgData.productos_titulo,
+          subtitulo: msgData.productos_subtitulo,
+          filtro_todos: msgData.productos_filtro_todos,
+          sin_items: msgData.productos_sin_items
         });
         updateTextos('galeria', {
           titulo: msgData.galeria_titulo,
           subtitulo: msgData.galeria_subtitulo
         });
         updateTextos('pedidos', {
-          titulo: msgData.reservas_titulo,
-          subtitulo: msgData.reservas_subtitulo,
-          exito_titulo: msgData.reservas_exito_titulo,
-          exito_mensaje: msgData.reservas_exito_mensaje,
-          btn_confirmar: msgData.reservas_btn_confirmar,
-          btn_enviando: msgData.reservas_btn_enviando
+          titulo: msgData.pedidos_titulo,
+          subtitulo: msgData.pedidos_subtitulo,
+          exito_titulo: msgData.pedidos_exito_titulo,
+          exito_mensaje: msgData.pedidos_exito_mensaje,
+          btn_confirmar: msgData.pedidos_btn_confirmar,
+          btn_enviando: msgData.pedidos_btn_enviando
         });
         updateTextos('contacto', {
           titulo: msgData.contacto_titulo,
@@ -312,14 +312,14 @@ export function StoreProvider({ children }: StoreProviderProps) {
         });
         updateTextos('nav', {
           nav_inicio: msgData.nav_inicio,
-          nav_productos: msgData.nav_menu,
+          nav_productos: msgData.nav_productos,
           nav_galeria: msgData.nav_galeria,
-          nav_pedidos: msgData.nav_reservas,
+          nav_pedidos: msgData.nav_pedidos,
           nav_contacto: msgData.nav_contacto
         });
       }
 
-      if (type === 'admin:menu' && msgData) {
+      if (type === 'admin:productos' && msgData) {
         updateMenu(msgData.categorias || [], msgData.items || []);
       }
 

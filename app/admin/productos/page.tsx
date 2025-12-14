@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { getSitio } from '@/lib/store-data';
 import { SitioProductoCategoria, SitioProduct, SitioProductInsert } from '@/lib/database.types';
 import { Plus, Pencil, Trash2, Loader2, X, GripVertical } from 'lucide-react';
 
@@ -38,13 +39,8 @@ export default function AdminMenu() {
 
   async function loadData() {
     try {
-      // Obtener sitio
-      const { data: sitio } = await supabase
-        .from('sitios')
-        .select('id')
-        .eq('activo', true)
-        .limit(1)
-        .single();
+      // Obtener sitio según SLUG
+      const sitio = await getSitio();
 
       if (sitio) {
         setSitioId(sitio.id);
@@ -210,8 +206,8 @@ export default function AdminMenu() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Menu</h1>
-          <p className="text-gray-500 mt-2">Gestiona las categorias y platos de tu menu</p>
+          <h1 className="text-3xl font-bold text-gray-800">Productos</h1>
+          <p className="text-gray-500 mt-2">Gestiona las categorías y productos de tu tienda</p>
         </div>
         <button
           onClick={() => openCategoriaModal()}

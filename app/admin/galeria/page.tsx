@@ -3,6 +3,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { getSitio } from '@/lib/store-data';
 import { SitioGaleria, SitioGaleriaInsert } from '@/lib/database.types';
 import { Plus, Pencil, Trash2, Loader2, X, Star, StarOff, Image as ImageIcon } from 'lucide-react';
 
@@ -28,12 +29,7 @@ export default function AdminGaleria() {
 
   async function loadData() {
     try {
-      const { data: sitio } = await supabase
-        .from('sitios')
-        .select('id')
-        .eq('activo', true)
-        .limit(1)
-        .single();
+      const sitio = await getSitio();
 
       if (sitio) {
         setSitioId(sitio.id);

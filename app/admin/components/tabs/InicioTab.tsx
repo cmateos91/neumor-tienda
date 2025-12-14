@@ -99,9 +99,9 @@ export function InicioTab({
               onChange={updateField}
             />
             <InputField
-              label="Menu"
-              field="nav_menu"
-              value={formTienda.nav_menu}
+              label="Productos"
+              field="nav_productos"
+              value={formTienda.nav_productos}
               onChange={updateField}
             />
             <InputField
@@ -161,8 +161,8 @@ export function InicioTab({
           <div className="grid grid-cols-2 gap-2">
             <InputField
               label="Boton 1"
-              field="inicio_btn_menu"
-              value={formTienda.inicio_btn_menu}
+              field="inicio_btn_productos"
+              value={formTienda.inicio_btn_productos}
               onChange={updateField}
             />
             <InputField

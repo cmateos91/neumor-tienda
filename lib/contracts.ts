@@ -4,7 +4,7 @@ export type AdminTab = 'inicio' | 'productos' | 'galeria' | 'pedidos' | 'contact
 
 export const adminTabs: { id: AdminTab; label: string; iconName: string }[] = [
   { id: 'inicio', label: 'Inicio', iconName: 'Home' },
-  { id: 'productos', label: 'Menu', iconName: 'UtensilsCrossed' },
+  { id: 'productos', label: 'Productos', iconName: 'Store' },
   { id: 'galeria', label: 'Galeria', iconName: 'Image' },
   { id: 'pedidos', label: 'Pedidos', iconName: 'CalendarClock' },
   { id: 'contacto', label: 'Contacto', iconName: 'MapPin' }

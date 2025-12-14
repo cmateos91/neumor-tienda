@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { getSitio } from '@/lib/store-data';
 import { SitioFeature, SitioFeatureInsert } from '@/lib/database.types';
 import { Plus, Pencil, Trash2, Loader2, X, GripVertical, Sparkles } from 'lucide-react';
 
@@ -32,12 +33,7 @@ export default function AdminFeatures() {
 
   async function loadData() {
     try {
-      const { data: sitio } = await supabase
-        .from('sitios')
-        .select('id')
-        .eq('activo', true)
-        .limit(1)
-        .single();
+      const sitio = await getSitio();
 
       if (sitio) {
         setSitioId(sitio.id);

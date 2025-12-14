@@ -39,14 +39,24 @@ export function useSitioData(): UseSitioDataReturn {
     setError(null);
 
     try {
-      const { data: sitioData, error: sitioError } = await supabase
-        .from('sitios')
-        .select('*')
-        .eq('activo', true)
-        .limit(1)
-        .single();
+      // Obtener sitio según SLUG (igual que en StoreProvider)
+      const slug = process.env.NEXT_PUBLIC_SITIO_SLUG;
+      console.log('[useSitioData] Buscando sitio con slug:', slug);
+
+      let query = supabase.from('sitios').select('*');
+
+      if (slug) {
+        query = query.eq('slug', slug);
+      } else {
+        console.warn('[useSitioData] No hay NEXT_PUBLIC_SITIO_SLUG, usando primer sitio activo');
+        query = query.eq('activo', true).limit(1);
+      }
+
+      const { data: sitioData, error: sitioError } = await query.single();
 
       if (sitioError && sitioError.code !== 'PGRST116') throw sitioError;
+
+      console.log('[useSitioData] Sitio cargado para admin:', sitioData?.id, sitioData?.slug);
 
       if (sitioData) {
         setSitio(sitioData);
@@ -85,20 +95,20 @@ export function useSitioData(): UseSitioDataReturn {
 
         setFormTienda({
           nombre: config?.nombre || '', tagline: config?.tagline || '', descripcion: config?.descripcion || '',
-          inicio_btn_menu: i.btn_menu || 'Ver Menu', inicio_btn_pedidos: i.btn_pedidos || 'Pedidor Mesa',
+          inicio_btn_productos: i.btn_productos || 'Ver Productos', inicio_btn_pedidos: i.btn_pedidos || 'Hacer Pedido',
           inicio_features_titulo: i.features_titulo || 'Por Que Elegirnos',
           inicio_features_subtitulo: i.features_subtitulo || 'Comprometidos con la excelencia en cada detalle',
           inicio_galeria_titulo: i.galeria_titulo || 'Ambiente Unico',
           inicio_galeria_subtitulo: i.galeria_subtitulo || 'Un espacio diseñado para crear momentos memorables',
           inicio_galeria_btn: i.galeria_btn || 'Ver Galeria Completa',
           nav_inicio: nav.nav_inicio || 'Inicio',
-          nav_menu: nav.nav_menu || 'Menu',
+          nav_productos: nav.nav_productos || 'Productos',
           nav_galeria: nav.nav_galeria || 'Galeria',
           nav_pedidos: nav.nav_pedidos || 'Pedidor',
           nav_contacto: nav.nav_contacto || 'Contacto',
-          menu_titulo: m.titulo || 'Nuestro Menú',
-          menu_subtitulo: m.subtitulo || 'Descubre una selección de platos elaborados con ingredientes frescos y de temporada',
-          menu_filtro_todos: m.filtro_todos || 'Todos', menu_sin_items: m.sin_items || 'No hay items en esta categoria',
+          productos_titulo: m.titulo || 'Nuestros Productos',
+          productos_subtitulo: m.subtitulo || 'Descubre nuestra selección de productos de calidad',
+          productos_filtro_todos: m.filtro_todos || 'Todos', productos_sin_items: m.sin_items || 'No hay items en esta categoria',
           galeria_titulo: g.titulo || 'Galería', galeria_subtitulo: g.subtitulo || 'Déjate inspirar por nuestros platos y ambiente',
           pedidos_titulo: r.titulo || 'Pedido tu Mesa',
           pedidos_subtitulo: r.subtitulo || 'Asegura tu lugar en una experiencia culinaria excepcional',
@@ -177,9 +187,9 @@ export function useSitioData(): UseSitioDataReturn {
       console.log('[useSitioData] Config guardado exitosamente:', configData);
 
       const textosUpdates = [
-        { pagina: 'inicio', textos: { btn_menu: formTienda.inicio_btn_menu, btn_pedidos: formTienda.inicio_btn_pedidos, features_titulo: formTienda.inicio_features_titulo, features_subtitulo: formTienda.inicio_features_subtitulo, galeria_titulo: formTienda.inicio_galeria_titulo, galeria_subtitulo: formTienda.inicio_galeria_subtitulo, galeria_btn: formTienda.inicio_galeria_btn }},
-        { pagina: 'nav', textos: { nav_inicio: formTienda.nav_inicio, nav_menu: formTienda.nav_menu, nav_galeria: formTienda.nav_galeria, nav_pedidos: formTienda.nav_pedidos, nav_contacto: formTienda.nav_contacto }},
-        { pagina: 'productos', textos: { titulo: formTienda.menu_titulo, subtitulo: formTienda.menu_subtitulo, filtro_todos: formTienda.menu_filtro_todos, sin_items: formTienda.menu_sin_items }},
+        { pagina: 'inicio', textos: { btn_productos: formTienda.inicio_btn_productos, btn_pedidos: formTienda.inicio_btn_pedidos, features_titulo: formTienda.inicio_features_titulo, features_subtitulo: formTienda.inicio_features_subtitulo, galeria_titulo: formTienda.inicio_galeria_titulo, galeria_subtitulo: formTienda.inicio_galeria_subtitulo, galeria_btn: formTienda.inicio_galeria_btn }},
+        { pagina: 'nav', textos: { nav_inicio: formTienda.nav_inicio, nav_productos: formTienda.nav_productos, nav_galeria: formTienda.nav_galeria, nav_pedidos: formTienda.nav_pedidos, nav_contacto: formTienda.nav_contacto }},
+        { pagina: 'productos', textos: { titulo: formTienda.productos_titulo, subtitulo: formTienda.productos_subtitulo, filtro_todos: formTienda.productos_filtro_todos, sin_items: formTienda.productos_sin_items }},
         { pagina: 'galeria', textos: { titulo: formTienda.galeria_titulo, subtitulo: formTienda.galeria_subtitulo }},
         { pagina: 'pedidos', textos: { titulo: formTienda.pedidos_titulo, subtitulo: formTienda.pedidos_subtitulo, exito_titulo: formTienda.pedidos_exito_titulo, exito_mensaje: formTienda.pedidos_exito_mensaje, btn_confirmar: formTienda.pedidos_btn_confirmar, btn_enviando: formTienda.pedidos_btn_enviando }},
         { pagina: 'contacto', textos: { titulo: formTienda.contacto_titulo, subtitulo: formTienda.contacto_subtitulo, info_titulo: formTienda.contacto_info_titulo, info_descripcion: formTienda.contacto_info_descripcion }}

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { getSitio } from '@/lib/store-data';
 import { Sitio, SitioConfigUpdate } from '@/lib/database.types';
 import { Save, Loader2 } from 'lucide-react';
 
@@ -34,13 +35,8 @@ export default function AdminTienda() {
   useEffect(() => {
     async function loadData() {
       try {
-        // Cargar sitio activo
-        const { data: sitioData } = await supabase
-          .from('sitios')
-          .select('*')
-          .eq('activo', true)
-          .limit(1)
-          .single();
+        // Cargar sitio según SLUG
+        const sitioData = await getSitio();
 
         if (sitioData) {
           setSitio(sitioData);

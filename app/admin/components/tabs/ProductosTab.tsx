@@ -121,9 +121,9 @@ export function ProductosTab({
           <label className="text-xs text-gray-500 mb-1 block">Título</label>
           <input
             type="text"
-            data-field="menu_titulo"
-            value={formTienda.menu_titulo}
-            onChange={(e) => updateField('menu_titulo', e.target.value)}
+            data-field="productos_titulo"
+            value={formTienda.productos_titulo}
+            onChange={(e) => updateField('productos_titulo', e.target.value)}
             className="neuro-input text-sm"
           />
         </div>
@@ -131,9 +131,9 @@ export function ProductosTab({
         <div>
           <label className="text-xs text-gray-500 mb-1 block">Subtítulo</label>
           <textarea
-            data-field="menu_subtitulo"
-            value={formTienda.menu_subtitulo}
-            onChange={(e) => updateField('menu_subtitulo', e.target.value)}
+            data-field="productos_subtitulo"
+            value={formTienda.productos_subtitulo}
+            onChange={(e) => updateField('productos_subtitulo', e.target.value)}
             className="neuro-input text-sm resize-none"
             rows={2}
           />
@@ -143,9 +143,9 @@ export function ProductosTab({
           <label className="text-xs text-gray-500 mb-1 block">Texto &quot;Ver todos&quot;</label>
           <input
             type="text"
-            data-field="menu_filtro_todos"
-            value={formTienda.menu_filtro_todos}
-            onChange={(e) => updateField('menu_filtro_todos', e.target.value)}
+            data-field="productos_filtro_todos"
+            value={formTienda.productos_filtro_todos}
+            onChange={(e) => updateField('productos_filtro_todos', e.target.value)}
             className="neuro-input text-sm"
           />
         </div>
@@ -154,9 +154,9 @@ export function ProductosTab({
           <label className="text-xs text-gray-500 mb-1 block">Mensaje sin items</label>
           <input
             type="text"
-            data-field="menu_sin_items"
-            value={formTienda.menu_sin_items}
-            onChange={(e) => updateField('menu_sin_items', e.target.value)}
+            data-field="productos_sin_items"
+            value={formTienda.productos_sin_items}
+            onChange={(e) => updateField('productos_sin_items', e.target.value)}
             className="neuro-input text-sm"
           />
         </div>
@@ -356,8 +356,8 @@ export function ProductosTab({
       {categorias.length === 0 && sitio && (
         <div className="neuro-card-sm p-8 text-center">
           <UtensilsCrossed className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-          <p className="text-gray-500 mb-2">No hay categorias en el menu</p>
-          <p className="text-gray-400 text-xs">Haz clic en &quot;Nueva categoria&quot; para comenzar</p>
+          <p className="text-gray-500 mb-2">No hay categorías de productos</p>
+          <p className="text-gray-400 text-xs">Haz clic en &quot;Nueva categoría&quot; para comenzar</p>
         </div>
       )}
 
