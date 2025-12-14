@@ -42,12 +42,15 @@ export async function getSitio(sitioId?: string): Promise<Sitio | null> {
 
     if (sitioId) {
       // Si se proporciona ID específico, usarlo
+      console.log('[DEBUG] Cargando sitio por ID:', sitioId);
       query = query.eq('id', sitioId);
     } else if (process.env.NEXT_PUBLIC_SITIO_SLUG) {
       // Si hay variable de entorno, usar el slug
+      console.log('[DEBUG] Cargando sitio por SLUG:', process.env.NEXT_PUBLIC_SITIO_SLUG);
       query = query.eq('slug', process.env.NEXT_PUBLIC_SITIO_SLUG);
     } else {
       // Fallback: primer sitio activo
+      console.log('[DEBUG] ADVERTENCIA: No hay NEXT_PUBLIC_SITIO_SLUG, usando primer sitio activo');
       query = query.eq('activo', true).limit(1);
     }
 
@@ -55,6 +58,10 @@ export async function getSitio(sitioId?: string): Promise<Sitio | null> {
 
     if (error && error.code !== 'PGRST116') {
       console.error('Error cargando sitio:', error);
+    }
+
+    if (data) {
+      console.log('[DEBUG] Sitio cargado:', { id: data.id, slug: data.slug, tipo: data.tipo });
     }
 
     return data;
