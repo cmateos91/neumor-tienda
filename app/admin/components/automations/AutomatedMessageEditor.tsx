@@ -20,8 +20,8 @@ interface AutomatedMessageEditorProps {
 const triggers: { value: MessageTrigger; label: string; description: string }[] = [
   { value: 'lead_created', label: 'Nuevo Lead', description: 'Cuando llega un nuevo contacto' },
   { value: 'message_received', label: 'Mensaje Recibido', description: 'Cuando el cliente envia un mensaje' },
-  { value: 'reservation_created', label: 'Nueva Reserva', description: 'Cuando se crea una reserva' },
-  { value: 'reservation_confirmed', label: 'Reserva Confirmada', description: 'Cuando se confirma una reserva' },
+  { value: 'pedidotion_created', label: 'Nueva Pedido', description: 'Cuando se crea una pedido' },
+  { value: 'pedidotion_confirmed', label: 'Pedido Confirmada', description: 'Cuando se confirma una pedido' },
   { value: 'follow_up', label: 'Seguimiento', description: 'Mensaje programado' }
 ];
 

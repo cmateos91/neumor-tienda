@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-interface RestaurantePreview {
+interface TiendaPreview {
   nombre?: string;
   tagline?: string;
   descripcion?: string;
@@ -45,14 +45,14 @@ interface FeaturePreview {
   }>;
 }
 
-// Hook para restaurante
-export function useLiveRestaurante(initial: RestaurantePreview) {
+// Hook para tienda
+export function useLiveTienda(initial: TiendaPreview) {
   const [data, setData] = useState(initial);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
-      if (event.data?.type === 'admin:restaurante') {
+      if (event.data?.type === 'admin:tienda') {
         setData(prev => ({ ...prev, ...event.data.data }));
       }
     };

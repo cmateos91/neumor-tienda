@@ -3,10 +3,10 @@
 // ============================================
 
 // Tipos de plantillas disponibles
-export type TipoPlantilla = 'restaurante' | 'gimnasio' | 'hotel' | 'peluqueria' | 'clinica';
+export type TipoPlantilla = 'tienda' | 'gimnasio' | 'hotel' | 'peluqueria' | 'clinica';
 
-// Estados de reserva
-export type EstadoReserva = 'pendiente' | 'confirmada' | 'cancelada' | 'completada';
+// Estados de pedido
+export type EstadoPedido = 'pendiente' | 'confirmado' | 'procesando' | 'enviado' | 'entregado' | 'cancelado';
 
 // ============================================
 // TABLAS GENÉRICAS (todas las plantillas)
@@ -80,26 +80,30 @@ export interface SitioFeature {
   created_at: string;
 }
 
-export interface SitioReserva {
+export interface SitioPedido {
   id: string;
   sitio_id: string;
   nombre: string;
   email: string;
   telefono: string | null;
-  fecha: string;
-  hora: string;
-  personas: number;
-  servicio: string | null;
+  direccion_envio: string | null;
+  items: any; // JSONB con array de productos
+  subtotal: number;
+  impuestos: number;
+  envio: number;
+  total: number;
+  metodo_pago: string | null;
   notas: string | null;
-  estado: EstadoReserva;
+  estado: EstadoPedido;
   created_at: string;
+  updated_at: string;
 }
 
 // ============================================
-// TABLAS DE MENU (genéricas para cualquier tipo de sitio)
+// TABLAS DE PRODUCTOS (para tiendas)
 // ============================================
 
-export interface SitioMenuCategoria {
+export interface SitioProductoCategoria {
   id: string;
   sitio_id: string;
   nombre: string;
@@ -108,7 +112,7 @@ export interface SitioMenuCategoria {
   created_at: string;
 }
 
-export interface SitioMenuItem {
+export interface SitioProduct {
   id: string;
   sitio_id: string;
   categoria_id: string | null;
@@ -116,7 +120,8 @@ export interface SitioMenuItem {
   descripcion: string | null;
   precio: number;
   imagen_url: string | null;
-  alergenos: string[] | null;
+  stock: number;
+  sku: string | null;
   disponible: boolean;
   destacado: boolean;
   orden: number;
@@ -124,19 +129,18 @@ export interface SitioMenuItem {
   updated_at: string;
 }
 
-// Aliases para compatibilidad (deprecated, usar SitioMenu*)
-/** @deprecated Use SitioMenuCategoria instead */
-export type RestauranteMenuCategoria = SitioMenuCategoria;
-/** @deprecated Use SitioMenuItem instead */
-export type RestauranteMenuItem = SitioMenuItem;
+// Aliases para compatibilidad
+export type SitioProductCategoria = SitioProductoCategoria;
+/** @deprecated Use SitioProduct instead */
+export type TiendaProduct = SitioProduct;
 
 // ============================================
 // TIPOS DE TEXTOS POR PÁGINA
 // ============================================
 
 export interface TextosInicio {
-  btn_menu: string;
-  btn_reservas: string;
+  btn_productos: string;
+  btn_pedidos: string;
   features_titulo: string;
   features_subtitulo: string;
   galeria_titulo: string;
@@ -156,7 +160,7 @@ export interface TextosGaleria {
   subtitulo: string;
 }
 
-export interface TextosReservas {
+export interface TextosPedidos {
   titulo: string;
   subtitulo: string;
   exito_titulo: string;
@@ -174,9 +178,9 @@ export interface TextosContacto {
 
 export interface TextosNav {
   nav_inicio: string;
-  nav_menu: string;
+  nav_productos: string;
   nav_galeria: string;
-  nav_reservas: string;
+  nav_pedidos: string;
   nav_contacto: string;
 }
 
@@ -189,27 +193,27 @@ export interface SitioCompleto {
   config: SitioConfig;
   textos: {
     inicio: TextosInicio;
-    menu: TextosMenu;
+    productos: TextosMenu;
     galeria: TextosGaleria;
-    reservas: TextosReservas;
+    pedidos: TextosPedidos;
     contacto: TextosContacto;
     nav: TextosNav;
   };
 }
 
-export interface RestauranteData {
+export interface TiendaData {
   sitio: Sitio;
   config: SitioConfig;
   textos: {
     inicio: TextosInicio;
-    menu: TextosMenu;
+    productos: TextosMenu;
     galeria: TextosGaleria;
-    reservas: TextosReservas;
+    pedidos: TextosPedidos;
     contacto: TextosContacto;
     nav: TextosNav;
   };
-  categorias: SitioMenuCategoria[];
-  menuItems: SitioMenuItem[];
+  categorias: SitioProductoCategoria[];
+  productos: SitioProduct[];
   galeria: SitioGaleria[];
   galeriaHome: SitioGaleria[];
   features: SitioFeature[];
@@ -224,15 +228,15 @@ export type SitioConfigInsert = Omit<SitioConfig, 'id' | 'created_at' | 'updated
 export type SitioTextosInsert = Omit<SitioTextos, 'id' | 'created_at' | 'updated_at'>;
 export type SitioGaleriaInsert = Omit<SitioGaleria, 'id' | 'created_at'>;
 export type SitioFeatureInsert = Omit<SitioFeature, 'id' | 'created_at'>;
-export type SitioReservaInsert = Omit<SitioReserva, 'id' | 'created_at'>;
-export type SitioMenuCategoriaInsert = Omit<SitioMenuCategoria, 'id' | 'created_at'>;
-export type SitioMenuItemInsert = Omit<SitioMenuItem, 'id' | 'created_at' | 'updated_at'>;
+export type SitioPedidoInsert = Omit<SitioPedido, 'id' | 'created_at'>;
+export type SitioProductoCategoriaInsert = Omit<SitioProductoCategoria, 'id' | 'created_at'>;
+export type SitioProductInsert = Omit<SitioProduct, 'id' | 'created_at' | 'updated_at'>;
 
 // Aliases deprecated
-/** @deprecated Use SitioMenuCategoriaInsert instead */
-export type RestauranteMenuCategoriaInsert = SitioMenuCategoriaInsert;
-/** @deprecated Use SitioMenuItemInsert instead */
-export type RestauranteMenuItemInsert = SitioMenuItemInsert;
+/** @deprecated Use SitioProductoCategoriaInsert instead */
+export type TiendaMenuCategoriaInsert = SitioProductoCategoriaInsert;
+/** @deprecated Use SitioProductInsert instead */
+export type TiendaProductInsert = SitioProductInsert;
 
 // ============================================
 // TIPOS PARA UPDATE (parciales)
@@ -242,14 +246,14 @@ export type SitioUpdate = Partial<Omit<Sitio, 'id' | 'created_at'>>;
 export type SitioConfigUpdate = Partial<Omit<SitioConfig, 'id' | 'sitio_id' | 'created_at'>>;
 export type SitioGaleriaUpdate = Partial<Omit<SitioGaleria, 'id' | 'sitio_id' | 'created_at'>>;
 export type SitioFeatureUpdate = Partial<Omit<SitioFeature, 'id' | 'sitio_id' | 'created_at'>>;
-export type SitioMenuCategoriaUpdate = Partial<Omit<SitioMenuCategoria, 'id' | 'sitio_id' | 'created_at'>>;
-export type SitioMenuItemUpdate = Partial<Omit<SitioMenuItem, 'id' | 'sitio_id' | 'created_at'>>;
+export type SitioProductoCategoriaUpdate = Partial<Omit<SitioProductoCategoria, 'id' | 'sitio_id' | 'created_at'>>;
+export type SitioProductUpdate = Partial<Omit<SitioProduct, 'id' | 'sitio_id' | 'created_at'>>;
 
 // Aliases deprecated
-/** @deprecated Use SitioMenuCategoriaUpdate instead */
-export type RestauranteMenuCategoriaUpdate = SitioMenuCategoriaUpdate;
-/** @deprecated Use SitioMenuItemUpdate instead */
-export type RestauranteMenuItemUpdate = SitioMenuItemUpdate;
+/** @deprecated Use SitioProductoCategoriaUpdate instead */
+export type TiendaMenuCategoriaUpdate = SitioProductoCategoriaUpdate;
+/** @deprecated Use SitioProductUpdate instead */
+export type TiendaProductUpdate = SitioProductUpdate;
 
 // ============================================
 // TABLA INDEPENDIENTE (leads de marketing)
@@ -271,34 +275,34 @@ export type ClientePotencialInsert = Omit<ClientePotencial, 'id' | 'created_at'>
 // ============================================
 
 export const defaultTextosInicio: TextosInicio = {
-  btn_menu: 'Ver Menú',
-  btn_reservas: 'Reservar Mesa',
-  features_titulo: 'Por Qué Elegirnos',
-  features_subtitulo: 'Comprometidos con la excelencia en cada detalle',
-  galeria_titulo: 'Ambiente Único',
-  galeria_subtitulo: 'Un espacio diseñado para crear momentos memorables',
-  galeria_btn: 'Ver Galería Completa'
+  btn_productos: 'Ver Catálogo',
+  btn_pedidos: 'Hacer Pedido',
+  features_titulo: 'Por Qué Comprar con Nosotros',
+  features_subtitulo: 'Calidad y servicio excepcional en cada compra',
+  galeria_titulo: 'Nuestros Productos Destacados',
+  galeria_subtitulo: 'Descubre nuestra selección de productos premium',
+  galeria_btn: 'Ver Todos los Productos'
 };
 
 export const defaultTextosMenu: TextosMenu = {
-  titulo: 'Nuestro Menú',
-  subtitulo: 'Descubre nuestra selección de platos',
+  titulo: 'Nuestros Productos',
+  subtitulo: 'Descubre nuestra selección de productos de calidad',
   filtro_todos: 'Todos',
-  sin_items: 'No hay items en esta categoría'
+  sin_items: 'No hay productos en esta categoría'
 };
 
 export const defaultTextosGaleria: TextosGaleria = {
-  titulo: 'Galería',
-  subtitulo: 'Déjate inspirar por nuestros platos'
+  titulo: 'Galería de Productos',
+  subtitulo: 'Explora nuestro catálogo visual'
 };
 
-export const defaultTextosReservas: TextosReservas = {
-  titulo: 'Reserva tu Mesa',
-  subtitulo: 'Asegura tu lugar para una experiencia única',
-  exito_titulo: '¡Reserva Confirmada!',
-  exito_mensaje: 'Te enviaremos un email de confirmación',
-  btn_confirmar: 'Confirmar Reserva',
-  btn_enviando: 'Enviando...'
+export const defaultTextosPedidos: TextosPedidos = {
+  titulo: 'Realizar Pedido',
+  subtitulo: 'Completa tu compra de forma rápida y segura',
+  exito_titulo: '¡Pedido Confirmado!',
+  exito_mensaje: 'Recibirás un email con los detalles de tu compra',
+  btn_confirmar: 'Confirmar Pedido',
+  btn_enviando: 'Procesando...'
 };
 
 export const defaultTextosContacto: TextosContacto = {
@@ -310,8 +314,8 @@ export const defaultTextosContacto: TextosContacto = {
 
 export const defaultTextosNav: TextosNav = {
   nav_inicio: 'Inicio',
-  nav_menu: 'Menu',
-  nav_galeria: 'Galeria',
-  nav_reservas: 'Reservar',
+  nav_productos: 'Productos',
+  nav_galeria: 'Galería',
+  nav_pedidos: 'Carrito',
   nav_contacto: 'Contacto'
 };

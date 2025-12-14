@@ -19,36 +19,36 @@ const DEFAULT_VARIABLES: Record<MessageTrigger, Array<{
     { variable_name: 'email', variable_key: '{{email}}', description: 'Email del cliente', example_value: 'juan@email.com' },
     { variable_name: 'phone', variable_key: '{{phone}}', description: 'Telefono del cliente', example_value: '+34612345678' },
     { variable_name: 'source', variable_key: '{{source}}', description: 'Origen del lead', example_value: 'Instagram' },
-    { variable_name: 'message', variable_key: '{{message}}', description: 'Mensaje original del cliente', example_value: 'Hola, quiero reservar' },
-    { variable_name: 'restaurant_name', variable_key: '{{restaurant_name}}', description: 'Nombre del restaurante', example_value: 'Mi Restaurante' }
+    { variable_name: 'message', variable_key: '{{message}}', description: 'Mensaje original del cliente', example_value: 'Hola, quiero pedidor' },
+    { variable_name: 'restaurant_name', variable_key: '{{restaurant_name}}', description: 'Nombre del tienda', example_value: 'Mi Tienda' }
   ],
   message_received: [
     { variable_name: 'name', variable_key: '{{name}}', description: 'Nombre del cliente', example_value: 'Juan Garcia' },
     { variable_name: 'email', variable_key: '{{email}}', description: 'Email del cliente', example_value: 'juan@email.com' },
     { variable_name: 'phone', variable_key: '{{phone}}', description: 'Telefono del cliente', example_value: '+34612345678' },
     { variable_name: 'message', variable_key: '{{message}}', description: 'Mensaje recibido', example_value: 'Tienen mesa para 4?' },
-    { variable_name: 'restaurant_name', variable_key: '{{restaurant_name}}', description: 'Nombre del restaurante', example_value: 'Mi Restaurante' }
+    { variable_name: 'restaurant_name', variable_key: '{{restaurant_name}}', description: 'Nombre del tienda', example_value: 'Mi Tienda' }
   ],
-  reservation_created: [
+  pedidotion_created: [
     { variable_name: 'name', variable_key: '{{name}}', description: 'Nombre del cliente', example_value: 'Juan Garcia' },
-    { variable_name: 'date', variable_key: '{{date}}', description: 'Fecha de la reserva', example_value: '25 de Diciembre' },
-    { variable_name: 'time', variable_key: '{{time}}', description: 'Hora de la reserva', example_value: '21:00' },
+    { variable_name: 'date', variable_key: '{{date}}', description: 'Fecha de la pedido', example_value: '25 de Diciembre' },
+    { variable_name: 'time', variable_key: '{{time}}', description: 'Hora de la pedido', example_value: '21:00' },
     { variable_name: 'guests', variable_key: '{{guests}}', description: 'Numero de personas', example_value: '4' },
-    { variable_name: 'restaurant_name', variable_key: '{{restaurant_name}}', description: 'Nombre del restaurante', example_value: 'Mi Restaurante' },
-    { variable_name: 'restaurant_phone', variable_key: '{{restaurant_phone}}', description: 'Telefono del restaurante', example_value: '+34912345678' },
-    { variable_name: 'restaurant_address', variable_key: '{{restaurant_address}}', description: 'Direccion del restaurante', example_value: 'Calle Mayor 1' }
+    { variable_name: 'restaurant_name', variable_key: '{{restaurant_name}}', description: 'Nombre del tienda', example_value: 'Mi Tienda' },
+    { variable_name: 'restaurant_phone', variable_key: '{{restaurant_phone}}', description: 'Telefono del tienda', example_value: '+34912345678' },
+    { variable_name: 'restaurant_address', variable_key: '{{restaurant_address}}', description: 'Direccion del tienda', example_value: 'Calle Mayor 1' }
   ],
-  reservation_confirmed: [
+  pedidotion_confirmed: [
     { variable_name: 'name', variable_key: '{{name}}', description: 'Nombre del cliente', example_value: 'Juan Garcia' },
-    { variable_name: 'date', variable_key: '{{date}}', description: 'Fecha de la reserva', example_value: '25 de Diciembre' },
-    { variable_name: 'time', variable_key: '{{time}}', description: 'Hora de la reserva', example_value: '21:00' },
+    { variable_name: 'date', variable_key: '{{date}}', description: 'Fecha de la pedido', example_value: '25 de Diciembre' },
+    { variable_name: 'time', variable_key: '{{time}}', description: 'Hora de la pedido', example_value: '21:00' },
     { variable_name: 'guests', variable_key: '{{guests}}', description: 'Numero de personas', example_value: '4' },
-    { variable_name: 'restaurant_name', variable_key: '{{restaurant_name}}', description: 'Nombre del restaurante', example_value: 'Mi Restaurante' }
+    { variable_name: 'restaurant_name', variable_key: '{{restaurant_name}}', description: 'Nombre del tienda', example_value: 'Mi Tienda' }
   ],
   follow_up: [
     { variable_name: 'name', variable_key: '{{name}}', description: 'Nombre del cliente', example_value: 'Juan Garcia' },
     { variable_name: 'days_since', variable_key: '{{days_since}}', description: 'Dias desde ultimo contacto', example_value: '3' },
-    { variable_name: 'restaurant_name', variable_key: '{{restaurant_name}}', description: 'Nombre del restaurante', example_value: 'Mi Restaurante' }
+    { variable_name: 'restaurant_name', variable_key: '{{restaurant_name}}', description: 'Nombre del tienda', example_value: 'Mi Tienda' }
   ]
 };
 

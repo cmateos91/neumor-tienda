@@ -5,15 +5,15 @@ export async function GET(request: Request) {
   
   // 1. Obtenemos el ID del cliente. 
   // Prioridad: Query param -> Variable de entorno -> Fallback
-  const clienteId = searchParams.get('clienteId') || process.env.NEXT_PUBLIC_RESTAURANTE_ID;
+  const clienteId = searchParams.get('clienteId') || process.env.NEXT_PUBLIC_TIENDA_ID;
 
   if (!clienteId) {
-    return NextResponse.json({ error: 'Falta configurar el ID del restaurante' }, { status: 500 });
+    return NextResponse.json({ error: 'Falta configurar el ID del tienda' }, { status: 500 });
   }
 
   // 2. Detectamos dinámicamente el dominio actual para saber dónde volver
   // Esto hace que funcione en localhost, en Vercel Preview y en Producción automáticamente.
-  const host = request.headers.get('host'); // ej: neumor-restaurante.vercel.app
+  const host = request.headers.get('host'); // ej: neumor-tienda.vercel.app
   const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
   const RETURN_URL = `${protocol}://${host}/admin/integraciones`;
 

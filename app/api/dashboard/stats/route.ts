@@ -97,10 +97,10 @@ export async function GET(request: NextRequest) {
     const reviewsReceived = activities?.filter(a => a.type === 'review_received').length || 0;
     const reviewsResponded = activities?.filter(a => a.type === 'review_responded').length || 0;
 
-    // Estadisticas de reservas
-    const reservationsCreated = activities?.filter(a => a.type === 'reservation_created').length || 0;
-    const reservationsConfirmed = activities?.filter(a => a.type === 'reservation_confirmed').length || 0;
-    const reservationsCancelled = activities?.filter(a => a.type === 'reservation_cancelled').length || 0;
+    // Estadisticas de pedidos
+    const pedidotionsCreated = activities?.filter(a => a.type === 'pedidotion_created').length || 0;
+    const pedidotionsConfirmed = activities?.filter(a => a.type === 'pedidotion_confirmed').length || 0;
+    const pedidotionsCancelled = activities?.filter(a => a.type === 'pedidotion_cancelled').length || 0;
 
     const stats: DashboardStats = {
       leads: {
@@ -124,11 +124,11 @@ export async function GET(request: NextRequest) {
         responded: reviewsResponded,
         pending: reviewsReceived - reviewsResponded
       },
-      reservations: {
-        total: reservationsCreated,
-        confirmed: reservationsConfirmed,
-        pending: reservationsCreated - reservationsConfirmed - reservationsCancelled,
-        cancelled: reservationsCancelled
+      pedidotions: {
+        total: pedidotionsCreated,
+        confirmed: pedidotionsConfirmed,
+        pending: pedidotionsCreated - pedidotionsConfirmed - pedidotionsCancelled,
+        cancelled: pedidotionsCancelled
       },
       period: {
         start: startDate.toISOString(),
@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
           leads: leadsChange,
           messages: 0, // TODO: calcular
           reviews: 0,
-          reservations: 0
+          pedidotions: 0
         }
       }
     };

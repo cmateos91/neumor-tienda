@@ -211,12 +211,12 @@ export function DashboardContainer({ sitioId }: DashboardContainerProps) {
           </div>
         );
 
-      case 'reservations':
+      case 'pedidotions':
         return (
           <div className="neuro-card p-8 text-center">
             <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">Reservas</h3>
-            <p className="text-gray-500">Proximamente: Sistema de reservas integrado...</p>
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">Pedidos</h3>
+            <p className="text-gray-500">Proximamente: Sistema de pedidos integrado...</p>
           </div>
         );
 
@@ -275,9 +275,9 @@ function mapActivityType(apiType: string): ActivityItem['type'] {
     'email_opened': 'email',
     'review_received': 'review',
     'review_responded': 'review',
-    'reservation_created': 'reservation',
-    'reservation_confirmed': 'reservation',
-    'reservation_cancelled': 'reservation',
+    'pedidotion_created': 'pedidotion',
+    'pedidotion_confirmed': 'pedidotion',
+    'pedidotion_cancelled': 'pedidotion',
     'social_mention': 'message',
     'social_comment': 'message',
     'webhook_received': 'message',

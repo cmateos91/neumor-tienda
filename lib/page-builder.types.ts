@@ -136,25 +136,25 @@ export const defaultHomeLayout: PageLayout = {
           }
         },
         {
-          id: 'hero-btn-menu',
+          id: 'hero-btn-productos',
           type: 'button',
           order: 3,
           props: {
-            text: 'btn_menu',
-            href: '/menu',
+            text: 'btn_productos',
+            href: '/productos',
             variant: 'primary',
-            elementId: 'inicio.hero.btn_menu'
+            elementId: 'inicio.hero.btn_productos'
           }
         },
         {
-          id: 'hero-btn-reservas',
+          id: 'hero-btn-pedidos',
           type: 'button',
           order: 4,
           props: {
-            text: 'btn_reservas',
-            href: '/reservas',
+            text: 'btn_pedidos',
+            href: '/pedidos',
             variant: 'secondary',
-            elementId: 'inicio.hero.btn_reservas'
+            elementId: 'inicio.hero.btn_pedidos'
           }
         }
       ]

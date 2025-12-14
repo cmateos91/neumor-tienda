@@ -48,7 +48,7 @@ export interface Lead {
   notes?: string;            // Notas internas
   tags?: string[];           // Etiquetas para filtrar
 
-  // Datos adicionales (reservas, pedidos, etc)
+  // Datos adicionales (pedidos, pedidos, etc)
   metadata?: Record<string, unknown>;
 
   // Asignacion
@@ -74,9 +74,9 @@ export type ActivityType =
   | 'email_opened'
   | 'review_received'
   | 'review_responded'
-  | 'reservation_created'
-  | 'reservation_confirmed'
-  | 'reservation_cancelled'
+  | 'pedidotion_created'
+  | 'pedidotion_confirmed'
+  | 'pedidotion_cancelled'
   | 'social_mention'
   | 'social_comment'
   | 'webhook_received'
@@ -93,7 +93,7 @@ export interface Activity {
 
   // Relaciones opcionales
   lead_id?: string;
-  reservation_id?: string;
+  pedidotion_id?: string;
 
   // Datos adicionales
   metadata?: Record<string, unknown>;
@@ -178,7 +178,7 @@ export type AutomationTrigger =
   | 'lead_status_changed'
   | 'message_received'
   | 'review_received'
-  | 'reservation_created'
+  | 'pedidotion_created'
   | 'scheduled';
 
 export type AutomationAction =
@@ -235,7 +235,7 @@ export interface DashboardStats {
     responded: number;
     pending: number;
   };
-  reservations: {
+  pedidotions: {
     total: number;
     confirmed: number;
     pending: number;
@@ -252,8 +252,8 @@ export interface DashboardStats {
 export type MessageTrigger =
   | 'lead_created'           // Nuevo lead recibido
   | 'message_received'       // Mensaje entrante del cliente
-  | 'reservation_created'    // Nueva reserva
-  | 'reservation_confirmed'  // Reserva confirmada
+  | 'pedidotion_created'    // Nueva pedido
+  | 'pedidotion_confirmed'  // Pedido confirmada
   | 'follow_up';             // Seguimiento programado
 
 export type MessageChannel =

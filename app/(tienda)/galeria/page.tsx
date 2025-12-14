@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { useRestaurant } from '@/lib/restaurant-context';
+import { useRestaurant } from '@/lib/store-context';
 import EditableWrapper from '../_components/EditableWrapper';
 
 export default function Galeria() {

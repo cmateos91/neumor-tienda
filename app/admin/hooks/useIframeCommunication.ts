@@ -2,15 +2,15 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { PageSection } from '@/lib/page-builder.types';
-import { FormRestaurante } from './useSitioData';
+import { FormTienda } from './useSitioData';
 import { type AdminTab } from '@/lib/contracts';
-import { RestauranteMenuCategoria, RestauranteMenuItem, SitioGaleria, SitioFeature } from '@/lib/database.types';
+import { SitioProductoCategoria, SitioProduct, SitioGaleria, SitioFeature } from '@/lib/database.types';
 import { editableNavigationMap } from '@/lib/editable-map';
 
 // Tipos de mensajes que enviamos al iframe
 export type IframeMessageType =
-  | 'restaurante'
-  | 'menu'
+  | 'tienda'
+  | 'productos'
   | 'galeria'
   | 'features'
   | 'editMode'
@@ -53,8 +53,8 @@ export interface IframeCommunicationActions {
   setEditMode: (enabled: boolean) => void;
   setPageBuilderMode: (enabled: boolean) => void;
   setSelectedElement: (elementId: string | null) => void;
-  sendRestauranteData: (data: FormRestaurante) => void;
-  sendMenuData: (categorias: RestauranteMenuCategoria[], items: RestauranteMenuItem[]) => void;
+  sendTiendaData: (data: FormTienda) => void;
+  sendMenuData: (categorias: SitioProductoCategoria[], items: SitioProduct[]) => void;
   sendGaleriaData: (items: SitioGaleria[]) => void;
   sendFeaturesData: (items: SitioFeature[]) => void;
   sendPageBuilderCommand: (command: 'enter-edit' | 'exit-edit' | 'update-layout', data?: { sections: PageSection[] }) => void;
@@ -100,13 +100,13 @@ export function useIframeCommunication(options: UseIframeCommunicationOptions = 
     }
   }, []);
 
-  // Enviar datos de restaurante
-  const sendRestauranteData = useCallback((data: FormRestaurante) => {
-    sendToIframe('restaurante', data as unknown as Record<string, unknown>);
+  // Enviar datos de tienda
+  const sendTiendaData = useCallback((data: FormTienda) => {
+    sendToIframe('tienda', data as unknown as Record<string, unknown>);
   }, [sendToIframe]);
 
-  // Enviar datos de menu (convierte blob URLs a data URLs para el iframe)
-  const sendMenuData = useCallback(async (categorias: RestauranteMenuCategoria[], items: RestauranteMenuItem[]) => {
+  // Enviar datos de productos (convierte blob URLs a data URLs para el iframe)
+  const sendMenuData = useCallback(async (categorias: SitioProductoCategoria[], items: SitioProduct[]) => {
     // Convertir blob URLs a data URLs para que funcionen en el iframe
     const processedItems = await Promise.all(
       items.map(async (item) => {
@@ -114,7 +114,7 @@ export function useIframeCommunication(options: UseIframeCommunicationOptions = 
           try {
             const response = await fetch(item.imagen_url);
             const blob = await response.blob();
-            return new Promise<RestauranteMenuItem>((resolve) => {
+            return new Promise<SitioProduct>((resolve) => {
               const reader = new FileReader();
               reader.onloadend = () => {
                 resolve({ ...item, imagen_url: reader.result as string });
@@ -128,7 +128,7 @@ export function useIframeCommunication(options: UseIframeCommunicationOptions = 
         return item;
       })
     );
-    sendToIframe('menu', { categorias, items: processedItems });
+    sendToIframe('productos', { categorias, items: processedItems });
   }, [sendToIframe]);
 
   // Enviar datos de galeria (convierte blob URLs a data URLs para el iframe)
@@ -275,7 +275,7 @@ export function useIframeCommunication(options: UseIframeCommunicationOptions = 
     setEditMode,
     setPageBuilderMode,
     setSelectedElement,
-    sendRestauranteData,
+    sendTiendaData,
     sendMenuData,
     sendGaleriaData,
     sendFeaturesData,

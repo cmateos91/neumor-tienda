@@ -5,23 +5,23 @@ import {
   Mail,
   ChevronDown, ChevronRight
 } from 'lucide-react';
-import { FormRestaurante } from '../../hooks/useSitioData';
+import { FormTienda } from '../../hooks/useSitioData';
 
 interface ContactoTabProps {
-  formRestaurante: FormRestaurante;
-  setFormRestaurante: React.Dispatch<React.SetStateAction<FormRestaurante>>;
+  formTienda: FormTienda;
+  setFormTienda: React.Dispatch<React.SetStateAction<FormTienda>>;
   expandedPage: string | null;
   setExpandedPage: (page: string | null) => void;
 }
 
 export function ContactoTab({
-  formRestaurante,
-  setFormRestaurante,
+  formTienda,
+  setFormTienda,
   expandedPage,
   setExpandedPage
 }: ContactoTabProps) {
-  const updateField = (field: keyof FormRestaurante, value: string) => {
-    setFormRestaurante(prev => ({ ...prev, [field]: value }));
+  const updateField = (field: keyof FormTienda, value: string) => {
+    setFormTienda(prev => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -39,14 +39,14 @@ export function ContactoTab({
           <InputField
             label="Título de la página"
             field="contacto_titulo"
-            value={formRestaurante.contacto_titulo}
+            value={formTienda.contacto_titulo}
             onChange={updateField}
             placeholder="Ej: Contacto"
           />
           <TextAreaField
             label="Subtítulo"
             field="contacto_subtitulo"
-            value={formRestaurante.contacto_subtitulo}
+            value={formTienda.contacto_subtitulo}
             onChange={updateField}
             placeholder="Descripción breve para la página de contacto"
             rows={2}
@@ -58,14 +58,14 @@ export function ContactoTab({
           <InputField
             label="Título de información"
             field="contacto_info_titulo"
-            value={formRestaurante.contacto_info_titulo}
+            value={formTienda.contacto_info_titulo}
             onChange={updateField}
             placeholder="Ej: Cómo Llegar"
           />
           <TextAreaField
             label="Descripción de información"
             field="contacto_info_descripcion"
-            value={formRestaurante.contacto_info_descripcion}
+            value={formTienda.contacto_info_descripcion}
             onChange={updateField}
             placeholder="Información adicional sobre ubicación, horarios, etc."
             rows={3}
@@ -132,9 +132,9 @@ function SectionBlock({ title, children }: SectionBlockProps) {
 
 interface InputFieldProps {
   label: string;
-  field: keyof FormRestaurante;
+  field: keyof FormTienda;
   value: string;
-  onChange: (field: keyof FormRestaurante, value: string) => void;
+  onChange: (field: keyof FormTienda, value: string) => void;
   placeholder?: string;
   type?: string;
 }
@@ -157,9 +157,9 @@ function InputField({ label, field, value, onChange, placeholder, type = 'text' 
 
 interface TextAreaFieldProps {
   label: string;
-  field: keyof FormRestaurante;
+  field: keyof FormTienda;
   value: string;
-  onChange: (field: keyof FormRestaurante, value: string) => void;
+  onChange: (field: keyof FormTienda, value: string) => void;
   placeholder?: string;
   rows?: number;
 }

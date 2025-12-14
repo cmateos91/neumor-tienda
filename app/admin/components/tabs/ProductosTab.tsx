@@ -2,21 +2,21 @@
 
 import React, { useState } from 'react';
 import { Plus, Trash2, Eye, EyeOff, RefreshCw, UtensilsCrossed, ChevronDown, ChevronUp, Undo2 } from 'lucide-react';
-import { SitioMenuCategoria, SitioMenuItem } from '@/lib/database.types';
+import { SitioProductoCategoria, SitioProduct } from '@/lib/database.types';
 import Image from 'next/image';
 import { ImageUploader } from '../ui/ImageUploader';
-import { FormRestaurante } from '../../hooks/useSitioData';
+import { FormTienda } from '../../hooks/useSitioData';
 
-interface MenuTabProps {
+interface ProductosTabProps {
   sitio: { id: string } | null;
-  categorias: SitioMenuCategoria[];
-  menuItems: SitioMenuItem[];
-  formRestaurante: FormRestaurante;
-  setFormRestaurante: React.Dispatch<React.SetStateAction<FormRestaurante>>;
+  categorias: SitioProductoCategoria[];
+  productos: SitioProduct[];
+  formTienda: FormTienda;
+  setFormTienda: React.Dispatch<React.SetStateAction<FormTienda>>;
   onAddCategoria: (nombre: string) => Promise<boolean>;
-  onAddMenuItem: (categoriaId: string) => Promise<boolean>;
-  onUpdateMenuItem: (id: string, field: string, value: string | number | boolean) => void;
-  onDeleteMenuItem: (id: string) => Promise<boolean>;
+  onAddProduct: (categoriaId: string) => Promise<boolean>;
+  onUpdateProduct: (id: string, field: string, value: string | number | boolean) => void;
+  onDeleteProduct: (id: string) => Promise<boolean>;
   onRefresh: () => void;
   // Dialog functions
   promptText: (title: string, placeholder?: string) => Promise<string | null>;
@@ -25,20 +25,20 @@ interface MenuTabProps {
   removePendingFile?: (id: string) => void;
   isPending?: (id: string) => boolean;
   // Pending deletes - eliminaciones diferidas
-  markForDeletion?: (id: string, type: 'galeria' | 'menu', imageUrl?: string) => void;
+  markForDeletion?: (id: string, type: 'galeria' | 'productos', imageUrl?: string) => void;
   unmarkForDeletion?: (id: string) => void;
   isMarkedForDeletion?: (id: string) => boolean;
 }
 
-export function MenuTab({
+export function ProductosTab({
   sitio,
   categorias,
-  menuItems,
-  formRestaurante,
-  setFormRestaurante,
+  productos,
+  formTienda,
+  setFormTienda,
   onAddCategoria,
-  onAddMenuItem,
-  onUpdateMenuItem,
+  onAddProduct,
+  onUpdateProduct,
   onRefresh,
   promptText,
   addPendingFile,
@@ -47,9 +47,9 @@ export function MenuTab({
   markForDeletion,
   unmarkForDeletion,
   isMarkedForDeletion
-}: MenuTabProps) {
-  const updateField = (field: keyof FormRestaurante, value: string) => {
-    setFormRestaurante(prev => ({ ...prev, [field]: value }));
+}: ProductosTabProps) {
+  const updateField = (field: keyof FormTienda, value: string) => {
+    setFormTienda(prev => ({ ...prev, [field]: value }));
   };
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
 
@@ -65,7 +65,7 @@ export function MenuTab({
   };
 
   // Eliminar item - modo diferido (sin confirmación, se puede restaurar)
-  const handleDeleteMenuItem = (item: SitioMenuItem) => {
+  const handleDeleteProduct = (item: SitioProduct) => {
     // Limpiar archivo pendiente si existe
     if (removePendingFile) {
       removePendingFile(`menu-${item.id}`);
@@ -73,7 +73,7 @@ export function MenuTab({
 
     if (deferredDeleteMode) {
       // Modo diferido: solo marcar para eliminación
-      markForDeletion!(item.id, 'menu', item.imagen_url || undefined);
+      markForDeletion!(item.id, 'productos', item.imagen_url || undefined);
     }
   };
 
@@ -87,13 +87,13 @@ export function MenuTab({
   // Cambiar imagen de un item en modo diferido
   const handleFileSelect = (itemId: string) => (file: File, previewUrl: string) => {
     if (addPendingFile) {
-      addPendingFile(`menu-${itemId}`, file, previewUrl, 'menu');
+      addPendingFile(`menu-${itemId}`, file, previewUrl, 'productos');
     }
   };
 
   // Cambiar imagen de un item
-  const handleImageChange = async (item: SitioMenuItem, newUrl: string) => {
-    onUpdateMenuItem(item.id, 'imagen_url', newUrl);
+  const handleImageChange = async (item: SitioProduct, newUrl: string) => {
+    onUpdateProduct(item.id, 'imagen_url', newUrl);
   };
 
   // Verificar si un item tiene imagen pendiente
@@ -122,7 +122,7 @@ export function MenuTab({
           <input
             type="text"
             data-field="menu_titulo"
-            value={formRestaurante.menu_titulo}
+            value={formTienda.menu_titulo}
             onChange={(e) => updateField('menu_titulo', e.target.value)}
             className="neuro-input text-sm"
           />
@@ -132,7 +132,7 @@ export function MenuTab({
           <label className="text-xs text-gray-500 mb-1 block">Subtítulo</label>
           <textarea
             data-field="menu_subtitulo"
-            value={formRestaurante.menu_subtitulo}
+            value={formTienda.menu_subtitulo}
             onChange={(e) => updateField('menu_subtitulo', e.target.value)}
             className="neuro-input text-sm resize-none"
             rows={2}
@@ -144,7 +144,7 @@ export function MenuTab({
           <input
             type="text"
             data-field="menu_filtro_todos"
-            value={formRestaurante.menu_filtro_todos}
+            value={formTienda.menu_filtro_todos}
             onChange={(e) => updateField('menu_filtro_todos', e.target.value)}
             className="neuro-input text-sm"
           />
@@ -155,7 +155,7 @@ export function MenuTab({
           <input
             type="text"
             data-field="menu_sin_items"
-            value={formRestaurante.menu_sin_items}
+            value={formTienda.menu_sin_items}
             onChange={(e) => updateField('menu_sin_items', e.target.value)}
             className="neuro-input text-sm"
           />
@@ -170,7 +170,7 @@ export function MenuTab({
 
       {!sitio && (
         <div className="neuro-card-sm p-4 text-center text-amber-600 text-sm">
-          Primero debes crear un restaurante en la seccion &quot;Info&quot;
+          Primero debes crear un tienda en la seccion &quot;Info&quot;
         </div>
       )}
 
@@ -188,7 +188,7 @@ export function MenuTab({
           <div className="px-4 py-3 flex items-center justify-between bg-gray-100/50">
             <span className="font-medium text-gray-700">{cat.nombre}</span>
             <button
-              onClick={() => onAddMenuItem(cat.id)}
+              onClick={() => onAddProduct(cat.id)}
               className="text-[#d4af37] hover:text-[#b8962f] cursor-pointer"
               title="Agregar item"
             >
@@ -196,7 +196,7 @@ export function MenuTab({
             </button>
           </div>
           <div className="divide-y divide-gray-200/50">
-            {menuItems.filter(i => i.categoria_id === cat.id).map(item => {
+            {productos.filter(i => i.categoria_id === cat.id).map(item => {
               const markedForDeletion = isItemMarkedForDeletion(item.id);
 
               return (
@@ -249,7 +249,7 @@ export function MenuTab({
                       <input
                         type="text"
                         value={item.nombre}
-                        onChange={(e) => onUpdateMenuItem(item.id, 'nombre', e.target.value)}
+                        onChange={(e) => onUpdateProduct(item.id, 'nombre', e.target.value)}
                         className="neuro-input text-sm flex-1"
                         placeholder="Nombre del plato"
                       />
@@ -266,7 +266,7 @@ export function MenuTab({
                     ) : (
                       <>
                         <button
-                          onClick={() => onUpdateMenuItem(item.id, 'disponible', !item.disponible)}
+                          onClick={() => onUpdateProduct(item.id, 'disponible', !item.disponible)}
                           className={`cursor-pointer p-1 ${item.disponible ? 'text-green-500' : 'text-gray-400'}`}
                           title={item.disponible ? 'Disponible' : 'No disponible'}
                         >
@@ -284,7 +284,7 @@ export function MenuTab({
                           )}
                         </button>
                         <button
-                          onClick={() => handleDeleteMenuItem(item)}
+                          onClick={() => handleDeleteProduct(item)}
                           className="text-red-400 hover:text-red-600 cursor-pointer p-1"
                           title="Eliminar"
                         >
@@ -302,7 +302,7 @@ export function MenuTab({
                         <input
                           type="number"
                           value={item.precio}
-                          onChange={(e) => onUpdateMenuItem(item.id, 'precio', parseFloat(e.target.value) || 0)}
+                          onChange={(e) => onUpdateProduct(item.id, 'precio', parseFloat(e.target.value) || 0)}
                           className="neuro-input text-sm w-24 pl-5"
                           placeholder="0.00"
                         />
@@ -310,7 +310,7 @@ export function MenuTab({
                       <input
                         type="text"
                         value={item.descripcion || ''}
-                        onChange={(e) => onUpdateMenuItem(item.id, 'descripcion', e.target.value)}
+                        onChange={(e) => onUpdateProduct(item.id, 'descripcion', e.target.value)}
                         className="neuro-input text-sm flex-1"
                         placeholder="Descripcion"
                       />
@@ -332,7 +332,7 @@ export function MenuTab({
                         value={item.imagen_url || ''}
                         onChange={(url) => handleImageChange(item, url)}
                         onDelete={() => handleImageChange(item, '')}
-                        folder="menu"
+                        folder="productos"
                         placeholder="Arrastra una imagen o haz clic"
                         showUrlInput={true}
                         deferred={deferredMode}
@@ -344,7 +344,7 @@ export function MenuTab({
                 </div>
               );
             })}
-            {menuItems.filter(i => i.categoria_id === cat.id).length === 0 && (
+            {productos.filter(i => i.categoria_id === cat.id).length === 0 && (
               <div className="px-4 py-6 text-center text-gray-400 text-sm">
                 Sin items. Haz clic en + para agregar.
               </div>
@@ -372,4 +372,4 @@ export function MenuTab({
   );
 }
 
-export default MenuTab;
+export default ProductosTab;

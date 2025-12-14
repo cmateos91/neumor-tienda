@@ -2,31 +2,31 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { RestauranteMenuCategoria, RestauranteMenuItem, RestauranteMenuItemInsert } from '@/lib/database.types';
+import { SitioProductoCategoria, SitioProduct, SitioProductInsert } from '@/lib/database.types';
 import { Plus, Pencil, Trash2, Loader2, X, GripVertical } from 'lucide-react';
 
 export default function AdminMenu() {
-  const [categorias, setCategorias] = useState<RestauranteMenuCategoria[]>([]);
-  const [items, setItems] = useState<RestauranteMenuItem[]>([]);
+  const [categorias, setCategorias] = useState<SitioProductoCategoria[]>([]);
+  const [items, setItems] = useState<SitioProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [sitioId, setSitioId] = useState<string | null>(null);
 
   // Modales
   const [showCategoriaModal, setShowCategoriaModal] = useState(false);
   const [showItemModal, setShowItemModal] = useState(false);
-  const [editingCategoria, setEditingCategoria] = useState<RestauranteMenuCategoria | null>(null);
-  const [editingItem, setEditingItem] = useState<RestauranteMenuItem | null>(null);
+  const [editingCategoria, setEditingCategoria] = useState<SitioProductoCategoria | null>(null);
+  const [editingItem, setEditingItem] = useState<SitioProduct | null>(null);
 
   // Formularios
   const [categoriaForm, setCategoriaForm] = useState({ nombre: '', orden: 0 });
-  const [itemForm, setItemForm] = useState<RestauranteMenuItemInsert>({
+  const [itemForm, setItemForm] = useState<SitioProductInsert>({
     sitio_id: '',
     categoria_id: null,
     nombre: '',
     descripcion: '',
     precio: 0,
     imagen_url: '',
-    alergenos: [],
+    stock: 0, sku: "",
     disponible: true,
     destacado: false,
     orden: 0
@@ -51,8 +51,8 @@ export default function AdminMenu() {
 
         // Cargar categorias e items
         const [catRes, itemRes] = await Promise.all([
-          supabase.from('sitio_menu_categorias').select('*').eq('sitio_id', sitio.id).order('orden'),
-          supabase.from('sitio_menu_items').select('*').eq('sitio_id', sitio.id).order('orden')
+          supabase.from('sitio_producto_categorias').select('*').eq('sitio_id', sitio.id).order('orden'),
+          supabase.from('sitio_productos').select('*').eq('sitio_id', sitio.id).order('orden')
         ]);
 
         if (catRes.data) setCategorias(catRes.data);
@@ -66,7 +66,7 @@ export default function AdminMenu() {
   }
 
   // === CATEGORIAS ===
-  const openCategoriaModal = (categoria?: RestauranteMenuCategoria) => {
+  const openCategoriaModal = (categoria?: SitioProductoCategoria) => {
     if (categoria) {
       setEditingCategoria(categoria);
       setCategoriaForm({ nombre: categoria.nombre, orden: categoria.orden });
@@ -83,11 +83,11 @@ export default function AdminMenu() {
     try {
       if (editingCategoria) {
         await supabase
-          .from('sitio_menu_categorias')
+          .from('sitio_producto_categorias')
           .update({ nombre: categoriaForm.nombre, orden: categoriaForm.orden })
           .eq('id', editingCategoria.id);
       } else {
-        await supabase.from('sitio_menu_categorias').insert({
+        await supabase.from('sitio_producto_categorias').insert({
           sitio_id: sitioId,
           nombre: categoriaForm.nombre,
           orden: categoriaForm.orden
@@ -105,8 +105,8 @@ export default function AdminMenu() {
 
     try {
       // Eliminar items de la categoria primero
-      await supabase.from('sitio_menu_items').delete().eq('categoria_id', id);
-      await supabase.from('sitio_menu_categorias').delete().eq('id', id);
+      await supabase.from('sitio_productos').delete().eq('categoria_id', id);
+      await supabase.from('sitio_producto_categorias').delete().eq('id', id);
       loadData();
     } catch (error) {
       console.error('Error eliminando categoria:', error);
@@ -114,7 +114,7 @@ export default function AdminMenu() {
   };
 
   // === ITEMS ===
-  const openItemModal = (categoriaId: string, item?: RestauranteMenuItem) => {
+  const openItemModal = (categoriaId: string, item?: SitioProduct) => {
     if (item) {
       setEditingItem(item);
       setItemForm({
@@ -124,7 +124,7 @@ export default function AdminMenu() {
         descripcion: item.descripcion || '',
         precio: item.precio,
         imagen_url: item.imagen_url || '',
-        alergenos: item.alergenos || [],
+        stock: item.stock || 0, sku: item.sku || "",
         disponible: item.disponible,
         destacado: item.destacado,
         orden: item.orden
@@ -139,7 +139,7 @@ export default function AdminMenu() {
         descripcion: '',
         precio: 0,
         imagen_url: '',
-        alergenos: [],
+        stock: 0, sku: "",
         disponible: true,
         destacado: false,
         orden: catItems.length
@@ -154,11 +154,11 @@ export default function AdminMenu() {
     try {
       if (editingItem) {
         await supabase
-          .from('sitio_menu_items')
+          .from('sitio_productos')
           .update(itemForm)
           .eq('id', editingItem.id);
       } else {
-        await supabase.from('sitio_menu_items').insert(itemForm);
+        await supabase.from('sitio_productos').insert(itemForm);
       }
       setShowItemModal(false);
       loadData();
@@ -171,17 +171,17 @@ export default function AdminMenu() {
     if (!confirm('Eliminar este item?')) return;
 
     try {
-      await supabase.from('sitio_menu_items').delete().eq('id', id);
+      await supabase.from('sitio_productos').delete().eq('id', id);
       loadData();
     } catch (error) {
       console.error('Error eliminando item:', error);
     }
   };
 
-  const toggleDisponible = async (item: RestauranteMenuItem) => {
+  const toggleDisponible = async (item: SitioProduct) => {
     try {
       await supabase
-        .from('sitio_menu_items')
+        .from('sitio_productos')
         .update({ disponible: !item.disponible })
         .eq('id', item.id);
       loadData();

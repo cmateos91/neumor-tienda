@@ -5,68 +5,68 @@ import {
   Calendar,
   ChevronDown, ChevronRight
 } from 'lucide-react';
-import { FormRestaurante } from '../../hooks/useSitioData';
+import { FormTienda } from '../../hooks/useSitioData';
 
-interface ReservasTabProps {
-  formRestaurante: FormRestaurante;
-  setFormRestaurante: React.Dispatch<React.SetStateAction<FormRestaurante>>;
+interface PedidosTabProps {
+  formTienda: FormTienda;
+  setFormTienda: React.Dispatch<React.SetStateAction<FormTienda>>;
   expandedPage: string | null;
   setExpandedPage: (page: string | null) => void;
 }
 
-export function ReservasTab({
-  formRestaurante,
-  setFormRestaurante,
+export function PedidosTab({
+  formTienda,
+  setFormTienda,
   expandedPage,
   setExpandedPage
-}: ReservasTabProps) {
-  const updateField = (field: keyof FormRestaurante, value: string) => {
-    setFormRestaurante(prev => ({ ...prev, [field]: value }));
+}: PedidosTabProps) {
+  const updateField = (field: keyof FormTienda, value: string) => {
+    setFormTienda(prev => ({ ...prev, [field]: value }));
   };
 
   return (
     <div className="space-y-3 animate-fadeIn">
-      {/* ===== RESERVAS ===== */}
+      {/* ===== PEDIDOS ===== */}
       <PageSection
-        id="reservas"
-        label="Reservas"
+        id="pedidos"
+        label="Pedidos"
         icon={Calendar}
-        expanded={expandedPage === 'reservas'}
-        onToggle={() => setExpandedPage(expandedPage === 'reservas' ? null : 'reservas')}
+        expanded={expandedPage === 'pedidos'}
+        onToggle={() => setExpandedPage(expandedPage === 'pedidos' ? null : 'pedidos')}
       >
         {/* TEXTOS DE PÁGINA */}
         <SectionBlock title="Textos de página">
           <InputField
             label="Título de la página"
-            field="reservas_titulo"
-            value={formRestaurante.reservas_titulo}
+            field="pedidos_titulo"
+            value={formTienda.pedidos_titulo}
             onChange={updateField}
-            placeholder="Ej: Reserva tu Mesa"
+            placeholder="Ej: Pedido tu Mesa"
           />
           <TextAreaField
             label="Subtítulo"
-            field="reservas_subtitulo"
-            value={formRestaurante.reservas_subtitulo}
+            field="pedidos_subtitulo"
+            value={formTienda.pedidos_subtitulo}
             onChange={updateField}
-            placeholder="Descripción breve para la página de reservas"
+            placeholder="Descripción breve para la página de pedidos"
             rows={2}
           />
         </SectionBlock>
 
-        {/* FORMULARIO DE RESERVAS */}
-        <SectionBlock title="Formulario de reservas">
+        {/* FORMULARIO DE PEDIDOS */}
+        <SectionBlock title="Formulario de pedidos">
           <div className="grid grid-cols-2 gap-2">
             <InputField
               label="Texto del botón"
-              field="reservas_btn_confirmar"
-              value={formRestaurante.reservas_btn_confirmar}
+              field="pedidos_btn_confirmar"
+              value={formTienda.pedidos_btn_confirmar}
               onChange={updateField}
-              placeholder="Ej: Confirmar Reserva"
+              placeholder="Ej: Confirmar Pedido"
             />
             <InputField
               label="Texto enviando"
-              field="reservas_btn_enviando"
-              value={formRestaurante.reservas_btn_enviando}
+              field="pedidos_btn_enviando"
+              value={formTienda.pedidos_btn_enviando}
               onChange={updateField}
               placeholder="Ej: Enviando..."
             />
@@ -77,17 +77,17 @@ export function ReservasTab({
         <SectionBlock title="Mensaje de éxito">
           <InputField
             label="Título de éxito"
-            field="reservas_exito_titulo"
-            value={formRestaurante.reservas_exito_titulo}
+            field="pedidos_exito_titulo"
+            value={formTienda.pedidos_exito_titulo}
             onChange={updateField}
-            placeholder="Ej: ¡Reserva Confirmada!"
+            placeholder="Ej: ¡Pedido Confirmada!"
           />
           <TextAreaField
             label="Mensaje de éxito"
-            field="reservas_exito_mensaje"
-            value={formRestaurante.reservas_exito_mensaje}
+            field="pedidos_exito_mensaje"
+            value={formTienda.pedidos_exito_mensaje}
             onChange={updateField}
-            placeholder="Mensaje que se muestra después de confirmar la reserva"
+            placeholder="Mensaje que se muestra después de confirmar la pedido"
             rows={3}
           />
         </SectionBlock>
@@ -152,9 +152,9 @@ function SectionBlock({ title, children }: SectionBlockProps) {
 
 interface InputFieldProps {
   label: string;
-  field: keyof FormRestaurante;
+  field: keyof FormTienda;
   value: string;
-  onChange: (field: keyof FormRestaurante, value: string) => void;
+  onChange: (field: keyof FormTienda, value: string) => void;
   placeholder?: string;
   type?: string;
 }
@@ -177,9 +177,9 @@ function InputField({ label, field, value, onChange, placeholder, type = 'text' 
 
 interface TextAreaFieldProps {
   label: string;
-  field: keyof FormRestaurante;
+  field: keyof FormTienda;
   value: string;
-  onChange: (field: keyof FormRestaurante, value: string) => void;
+  onChange: (field: keyof FormTienda, value: string) => void;
   placeholder?: string;
   rows?: number;
 }

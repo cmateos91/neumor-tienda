@@ -6,13 +6,13 @@ import { Trash2, Eye, EyeOff, RefreshCw, Image as ImageIcon, ChevronDown, Chevro
 import { SitioGaleria } from '@/lib/database.types';
 import { ImageUploader } from '../ui/ImageUploader';
 import { isSupabaseStorageUrl } from '@/lib/storage';
-import { FormRestaurante } from '../../hooks/useSitioData';
+import { FormTienda } from '../../hooks/useSitioData';
 
 interface GaleriaTabProps {
   sitio: { id: string } | null;
   galeria: SitioGaleria[];
-  formRestaurante: FormRestaurante;
-  setFormRestaurante: React.Dispatch<React.SetStateAction<FormRestaurante>>;
+  formTienda: FormTienda;
+  setFormTienda: React.Dispatch<React.SetStateAction<FormTienda>>;
   onAddItem: (url: string) => Promise<string | null>;
   onToggleHome: (id: string, current: boolean) => void;
   onToggleVisible: (id: string, current: boolean) => void;
@@ -24,7 +24,7 @@ interface GaleriaTabProps {
   removePendingFile?: (id: string) => void;
   isPending?: (id: string) => boolean;
   // Pending deletes - eliminaciones diferidas
-  markForDeletion?: (id: string, type: 'galeria' | 'menu', imageUrl?: string) => void;
+  markForDeletion?: (id: string, type: 'galeria' | 'productos', imageUrl?: string) => void;
   unmarkForDeletion?: (id: string) => void;
   isMarkedForDeletion?: (id: string) => boolean;
 }
@@ -32,8 +32,8 @@ interface GaleriaTabProps {
 export function GaleriaTab({
   sitio,
   galeria,
-  formRestaurante,
-  setFormRestaurante,
+  formTienda,
+  setFormTienda,
   onAddItem,
   onToggleHome,
   onToggleVisible,
@@ -46,8 +46,8 @@ export function GaleriaTab({
   unmarkForDeletion,
   isMarkedForDeletion
 }: GaleriaTabProps) {
-  const updateField = (field: keyof FormRestaurante, value: string) => {
-    setFormRestaurante(prev => ({ ...prev, [field]: value }));
+  const updateField = (field: keyof FormTienda, value: string) => {
+    setFormTienda(prev => ({ ...prev, [field]: value }));
   };
   const [newImageUrl, setNewImageUrl] = useState('');
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
@@ -135,7 +135,7 @@ export function GaleriaTab({
           <input
             type="text"
             data-field="galeria_titulo"
-            value={formRestaurante.galeria_titulo}
+            value={formTienda.galeria_titulo}
             onChange={(e) => updateField('galeria_titulo', e.target.value)}
             className="neuro-input text-sm"
           />
@@ -145,7 +145,7 @@ export function GaleriaTab({
           <label className="text-xs text-gray-500 mb-1 block">Subtítulo</label>
           <textarea
             data-field="galeria_subtitulo"
-            value={formRestaurante.galeria_subtitulo}
+            value={formTienda.galeria_subtitulo}
             onChange={(e) => updateField('galeria_subtitulo', e.target.value)}
             className="neuro-input text-sm resize-none"
             rows={2}
@@ -161,7 +161,7 @@ export function GaleriaTab({
 
       {!sitio && (
         <div className="neuro-card-sm p-4 text-center text-amber-600 text-sm">
-          Primero debes crear un restaurante en la seccion &quot;Info&quot;
+          Primero debes crear un tienda en la seccion &quot;Info&quot;
         </div>
       )}
 

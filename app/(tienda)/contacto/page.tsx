@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { MapPin, Phone, Mail, Clock } from 'lucide-react';
-import { useRestaurant } from '@/lib/restaurant-context';
+import { useRestaurant } from '@/lib/store-context';
 import EditableWrapper from '../_components/EditableWrapper';
 
 export default function Contacto() {

@@ -2,33 +2,33 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import type { Sitio, SitioConfig, SitioTextos, SitioMenuCategoria, SitioMenuItem, SitioGaleria, SitioFeature } from '@/lib/database.types';
+import type { Sitio, SitioConfig, SitioTextos, SitioProductoCategoria, SitioProduct, SitioGaleria, SitioFeature } from '@/lib/database.types';
 import type { PageSection } from '@/lib/page-builder.types';
 import { defaultHomeLayout } from '@/lib/page-builder.types';
 
 // Tipos
 import {
-  FormRestaurante,
-  defaultFormRestaurante,
+  FormTienda,
+  defaultFormTienda,
   UseSitioDataReturn
 } from './useSitioData.types';
 
 // Re-exportar tipos para compatibilidad
-export type { FormRestaurante, UseSitioDataReturn } from './useSitioData.types';
-export { defaultFormRestaurante } from './useSitioData.types';
+export type { FormTienda, UseSitioDataReturn } from './useSitioData.types';
+export { defaultFormTienda } from './useSitioData.types';
 
 export function useSitioData(): UseSitioDataReturn {
   // Estados principales
   const [sitio, setSitio] = useState<Sitio | null>(null);
   const [sitioConfig, setSitioConfig] = useState<SitioConfig | null>(null);
   const [sitioTextos, setSitioTextos] = useState<Record<string, Record<string, string>>>({});
-  const [formRestaurante, setFormRestaurante] = useState<FormRestaurante>(defaultFormRestaurante);
+  const [formTienda, setFormTienda] = useState<FormTienda>(defaultFormTienda);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Estados de datos
-  const [categorias, setCategorias] = useState<SitioMenuCategoria[]>([]);
-  const [menuItems, setMenuItems] = useState<SitioMenuItem[]>([]);
+  const [categorias, setCategorias] = useState<SitioProductoCategoria[]>([]);
+  const [productos, setProducts] = useState<SitioProduct[]>([]);
   const [galeria, setGaleria] = useState<SitioGaleria[]>([]);
   const [features, setFeatures] = useState<SitioFeature[]>([]);
   const [pageLayout, setPageLayout] = useState<PageSection[] | null>(null);
@@ -77,15 +77,15 @@ export function useSitioData(): UseSitioDataReturn {
 
         // Mapear textos a form
         const i = textosMap['inicio'] || {};
-        const m = textosMap['menu'] || {};
+        const m = textosMap['productos'] || {};
         const g = textosMap['galeria'] || {};
-        const r = textosMap['reservas'] || {};
+        const r = textosMap['pedidos'] || {};
         const c = textosMap['contacto'] || {};
         const nav = textosMap['nav'] || {};
 
-        setFormRestaurante({
+        setFormTienda({
           nombre: config?.nombre || '', tagline: config?.tagline || '', descripcion: config?.descripcion || '',
-          inicio_btn_menu: i.btn_menu || 'Ver Menu', inicio_btn_reservas: i.btn_reservas || 'Reservar Mesa',
+          inicio_btn_menu: i.btn_menu || 'Ver Menu', inicio_btn_pedidos: i.btn_pedidos || 'Pedidor Mesa',
           inicio_features_titulo: i.features_titulo || 'Por Que Elegirnos',
           inicio_features_subtitulo: i.features_subtitulo || 'Comprometidos con la excelencia en cada detalle',
           inicio_galeria_titulo: i.galeria_titulo || 'Ambiente Unico',
@@ -94,21 +94,21 @@ export function useSitioData(): UseSitioDataReturn {
           nav_inicio: nav.nav_inicio || 'Inicio',
           nav_menu: nav.nav_menu || 'Menu',
           nav_galeria: nav.nav_galeria || 'Galeria',
-          nav_reservas: nav.nav_reservas || 'Reservar',
+          nav_pedidos: nav.nav_pedidos || 'Pedidor',
           nav_contacto: nav.nav_contacto || 'Contacto',
           menu_titulo: m.titulo || 'Nuestro Menú',
           menu_subtitulo: m.subtitulo || 'Descubre una selección de platos elaborados con ingredientes frescos y de temporada',
           menu_filtro_todos: m.filtro_todos || 'Todos', menu_sin_items: m.sin_items || 'No hay items en esta categoria',
           galeria_titulo: g.titulo || 'Galería', galeria_subtitulo: g.subtitulo || 'Déjate inspirar por nuestros platos y ambiente',
-          reservas_titulo: r.titulo || 'Reserva tu Mesa',
-          reservas_subtitulo: r.subtitulo || 'Asegura tu lugar en una experiencia culinaria excepcional',
-          reservas_exito_titulo: r.exito_titulo || '¡Reserva Confirmada!',
-          reservas_exito_mensaje: r.exito_mensaje || 'Hemos recibido tu reserva. Te enviaremos un email de confirmación pronto.',
-          reservas_btn_confirmar: r.btn_confirmar || 'Confirmar Reserva', reservas_btn_enviando: r.btn_enviando || 'Enviando...',
+          pedidos_titulo: r.titulo || 'Pedido tu Mesa',
+          pedidos_subtitulo: r.subtitulo || 'Asegura tu lugar en una experiencia culinaria excepcional',
+          pedidos_exito_titulo: r.exito_titulo || '¡Pedido Confirmada!',
+          pedidos_exito_mensaje: r.exito_mensaje || 'Hemos recibido tu pedido. Te enviaremos un email de confirmación pronto.',
+          pedidos_btn_confirmar: r.btn_confirmar || 'Confirmar Pedido', pedidos_btn_enviando: r.btn_enviando || 'Enviando...',
           contacto_titulo: c.titulo || 'Contacto',
           contacto_subtitulo: c.subtitulo || 'Estamos aquí para atenderte y hacer de tu visita una experiencia memorable',
           telefono: config?.telefono || '', telefono_secundario: config?.telefono_secundario || '',
-          email: config?.email || '', email_reservas: config?.email_secundario || '',
+          email: config?.email || '', email_pedidos: config?.email_secundario || '',
           direccion_calle: config?.direccion_calle || '', direccion_ciudad: config?.direccion_ciudad || '',
           direccion_cp: config?.direccion_cp || '', direccion_pais: config?.direccion_pais || '',
           horario_semana: config?.horario_semana || '', horario_finde: config?.horario_finde || '',
@@ -119,14 +119,14 @@ export function useSitioData(): UseSitioDataReturn {
         });
 
         const [catRes, itemsRes, galRes, featRes] = await Promise.all([
-          supabase.from('sitio_menu_categorias').select('*').eq('sitio_id', sitioData.id).order('orden'),
-          supabase.from('sitio_menu_items').select('*').eq('sitio_id', sitioData.id).order('orden'),
+          supabase.from('sitio_producto_categorias').select('*').eq('sitio_id', sitioData.id).order('orden'),
+          supabase.from('sitio_productos').select('*').eq('sitio_id', sitioData.id).order('orden'),
           supabase.from('sitio_galeria').select('*').eq('sitio_id', sitioData.id).order('orden'),
           supabase.from('sitio_features').select('*').eq('sitio_id', sitioData.id).order('orden')
         ]);
 
         setCategorias(catRes.data || []);
-        setMenuItems(itemsRes.data || []);
+        setProducts(itemsRes.data || []);
         setGaleria(galRes.data || []);
         setFeatures(featRes.data || []);
       }
@@ -139,12 +139,12 @@ export function useSitioData(): UseSitioDataReturn {
   }, []);
 
   // ===== GUARDAR =====
-  const saveRestaurante = useCallback(async (updatedData?: {
-    galeria?: SitioGaleria[]; menuItems?: SitioMenuItem[]; pageLayout?: PageSection[];
+  const saveTienda = useCallback(async (updatedData?: {
+    galeria?: SitioGaleria[]; productos?: SitioProduct[]; pageLayout?: PageSection[];
   }): Promise<boolean> => {
     if (!sitio) return false;
     const galeriaToSave = updatedData?.galeria ?? galeria;
-    const menuItemsToSave = updatedData?.menuItems ?? menuItems;
+    const productosToSave = updatedData?.productos ?? productos;
     const pageLayoutSections = updatedData?.pageLayout ?? pageLayout;
 
     // Crear objeto PageLayout completo si hay secciones
@@ -159,14 +159,14 @@ export function useSitioData(): UseSitioDataReturn {
 
     try {
       const { data: configData, error: configError } = await supabase.from('sitio_config').update({
-        nombre: formRestaurante.nombre, tagline: formRestaurante.tagline, descripcion: formRestaurante.descripcion,
-        telefono: formRestaurante.telefono, telefono_secundario: formRestaurante.telefono_secundario,
-        email: formRestaurante.email, email_secundario: formRestaurante.email_reservas,
-        direccion_calle: formRestaurante.direccion_calle, direccion_ciudad: formRestaurante.direccion_ciudad,
-        direccion_cp: formRestaurante.direccion_cp, direccion_pais: formRestaurante.direccion_pais,
-        horario_semana: formRestaurante.horario_semana, horario_finde: formRestaurante.horario_finde,
-        instagram: formRestaurante.instagram, facebook: formRestaurante.facebook, twitter: formRestaurante.twitter,
-        mapa_embed_url: formRestaurante.mapa_embed_url,
+        nombre: formTienda.nombre, tagline: formTienda.tagline, descripcion: formTienda.descripcion,
+        telefono: formTienda.telefono, telefono_secundario: formTienda.telefono_secundario,
+        email: formTienda.email, email_secundario: formTienda.email_pedidos,
+        direccion_calle: formTienda.direccion_calle, direccion_ciudad: formTienda.direccion_ciudad,
+        direccion_cp: formTienda.direccion_cp, direccion_pais: formTienda.direccion_pais,
+        horario_semana: formTienda.horario_semana, horario_finde: formTienda.horario_finde,
+        instagram: formTienda.instagram, facebook: formTienda.facebook, twitter: formTienda.twitter,
+        mapa_embed_url: formTienda.mapa_embed_url,
         page_layout: pageLayoutToSave
       }).eq('sitio_id', sitio.id);
 
@@ -177,17 +177,17 @@ export function useSitioData(): UseSitioDataReturn {
       console.log('[useSitioData] Config guardado exitosamente:', configData);
 
       const textosUpdates = [
-        { pagina: 'inicio', textos: { btn_menu: formRestaurante.inicio_btn_menu, btn_reservas: formRestaurante.inicio_btn_reservas, features_titulo: formRestaurante.inicio_features_titulo, features_subtitulo: formRestaurante.inicio_features_subtitulo, galeria_titulo: formRestaurante.inicio_galeria_titulo, galeria_subtitulo: formRestaurante.inicio_galeria_subtitulo, galeria_btn: formRestaurante.inicio_galeria_btn }},
-        { pagina: 'nav', textos: { nav_inicio: formRestaurante.nav_inicio, nav_menu: formRestaurante.nav_menu, nav_galeria: formRestaurante.nav_galeria, nav_reservas: formRestaurante.nav_reservas, nav_contacto: formRestaurante.nav_contacto }},
-        { pagina: 'menu', textos: { titulo: formRestaurante.menu_titulo, subtitulo: formRestaurante.menu_subtitulo, filtro_todos: formRestaurante.menu_filtro_todos, sin_items: formRestaurante.menu_sin_items }},
-        { pagina: 'galeria', textos: { titulo: formRestaurante.galeria_titulo, subtitulo: formRestaurante.galeria_subtitulo }},
-        { pagina: 'reservas', textos: { titulo: formRestaurante.reservas_titulo, subtitulo: formRestaurante.reservas_subtitulo, exito_titulo: formRestaurante.reservas_exito_titulo, exito_mensaje: formRestaurante.reservas_exito_mensaje, btn_confirmar: formRestaurante.reservas_btn_confirmar, btn_enviando: formRestaurante.reservas_btn_enviando }},
-        { pagina: 'contacto', textos: { titulo: formRestaurante.contacto_titulo, subtitulo: formRestaurante.contacto_subtitulo, info_titulo: formRestaurante.contacto_info_titulo, info_descripcion: formRestaurante.contacto_info_descripcion }}
+        { pagina: 'inicio', textos: { btn_menu: formTienda.inicio_btn_menu, btn_pedidos: formTienda.inicio_btn_pedidos, features_titulo: formTienda.inicio_features_titulo, features_subtitulo: formTienda.inicio_features_subtitulo, galeria_titulo: formTienda.inicio_galeria_titulo, galeria_subtitulo: formTienda.inicio_galeria_subtitulo, galeria_btn: formTienda.inicio_galeria_btn }},
+        { pagina: 'nav', textos: { nav_inicio: formTienda.nav_inicio, nav_menu: formTienda.nav_menu, nav_galeria: formTienda.nav_galeria, nav_pedidos: formTienda.nav_pedidos, nav_contacto: formTienda.nav_contacto }},
+        { pagina: 'productos', textos: { titulo: formTienda.menu_titulo, subtitulo: formTienda.menu_subtitulo, filtro_todos: formTienda.menu_filtro_todos, sin_items: formTienda.menu_sin_items }},
+        { pagina: 'galeria', textos: { titulo: formTienda.galeria_titulo, subtitulo: formTienda.galeria_subtitulo }},
+        { pagina: 'pedidos', textos: { titulo: formTienda.pedidos_titulo, subtitulo: formTienda.pedidos_subtitulo, exito_titulo: formTienda.pedidos_exito_titulo, exito_mensaje: formTienda.pedidos_exito_mensaje, btn_confirmar: formTienda.pedidos_btn_confirmar, btn_enviando: formTienda.pedidos_btn_enviando }},
+        { pagina: 'contacto', textos: { titulo: formTienda.contacto_titulo, subtitulo: formTienda.contacto_subtitulo, info_titulo: formTienda.contacto_info_titulo, info_descripcion: formTienda.contacto_info_descripcion }}
       ];
 
       await Promise.all([
         ...textosUpdates.map(t => supabase.from('sitio_textos').upsert({ sitio_id: sitio.id, pagina: t.pagina, textos: t.textos }, { onConflict: 'sitio_id,pagina' })),
-        ...menuItemsToSave.map(item => supabase.from('sitio_menu_items').update({ nombre: item.nombre, descripcion: item.descripcion, precio: item.precio, imagen_url: item.imagen_url, disponible: item.disponible, destacado: item.destacado, orden: item.orden }).eq('id', item.id)),
+        ...productosToSave.map(item => supabase.from('sitio_productos').update({ nombre: item.nombre, descripcion: item.descripcion, precio: item.precio, imagen_url: item.imagen_url, disponible: item.disponible, destacado: item.destacado, orden: item.orden }).eq('id', item.id)),
         ...galeriaToSave.map(item => supabase.from('sitio_galeria').update({ url: item.url, titulo: item.titulo, descripcion: item.descripcion, es_home: item.es_home, visible: item.visible, orden: item.orden }).eq('id', item.id)),
         ...features.map(f => supabase.from('sitio_features').update({ titulo: f.titulo, descripcion: f.descripcion, icono: f.icono, orden: f.orden }).eq('id', f.id))
       ]);
@@ -196,13 +196,13 @@ export function useSitioData(): UseSitioDataReturn {
       console.error('Error saving:', err);
       return false;
     }
-  }, [sitio, formRestaurante, menuItems, galeria, features, pageLayout]);
+  }, [sitio, formTienda, productos, galeria, features, pageLayout]);
 
   // ===== CRUD CATEGORÍAS =====
   const addCategoria = useCallback(async (nombre: string): Promise<boolean> => {
     if (!sitio || !nombre) return false;
     try {
-      const { error } = await supabase.from('sitio_menu_categorias').insert({ sitio_id: sitio.id, nombre, orden: categorias.length });
+      const { error } = await supabase.from('sitio_producto_categorias').insert({ sitio_id: sitio.id, nombre, orden: categorias.length });
       if (error) throw error;
       await loadAllData();
       return true;
@@ -210,30 +210,30 @@ export function useSitioData(): UseSitioDataReturn {
   }, [sitio, categorias.length, loadAllData]);
 
   // ===== CRUD MENU ITEMS =====
-  const addMenuItem = useCallback(async (categoriaId: string): Promise<boolean> => {
+  const addProduct = useCallback(async (categoriaId: string): Promise<boolean> => {
     if (!sitio) return false;
     try {
-      const { error } = await supabase.from('sitio_menu_items').insert({
+      const { error } = await supabase.from('sitio_productos').insert({
         sitio_id: sitio.id, categoria_id: categoriaId, nombre: 'Nuevo plato', precio: 0,
-        disponible: true, destacado: false, alergenos: [], orden: menuItems.filter(i => i.categoria_id === categoriaId).length
+        disponible: true, destacado: false, stock: 0, sku: "", orden: productos.filter(i => i.categoria_id === categoriaId).length
       });
       if (error) throw error;
       await loadAllData();
       return true;
-    } catch (err) { console.error('Error creating menu item:', err); return false; }
-  }, [sitio, menuItems, loadAllData]);
+    } catch (err) { console.error('Error creating productos item:', err); return false; }
+  }, [sitio, productos, loadAllData]);
 
-  const updateMenuItem = useCallback((id: string, field: string, value: string | number | boolean) => {
-    setMenuItems(prev => prev.map(item => item.id === id ? { ...item, [field]: value } : item));
+  const updateProduct = useCallback((id: string, field: string, value: string | number | boolean) => {
+    setProducts(prev => prev.map(item => item.id === id ? { ...item, [field]: value } : item));
   }, []);
 
-  const deleteMenuItem = useCallback(async (id: string): Promise<boolean> => {
+  const deleteProduct = useCallback(async (id: string): Promise<boolean> => {
     try {
-      setMenuItems(prev => prev.filter(item => item.id !== id));
-      const { error } = await supabase.from('sitio_menu_items').delete().eq('id', id);
+      setProducts(prev => prev.filter(item => item.id !== id));
+      const { error } = await supabase.from('sitio_productos').delete().eq('id', id);
       if (error) throw error;
       return true;
-    } catch (err) { console.error('Error deleting menu item:', err); await loadAllData(); return false; }
+    } catch (err) { console.error('Error deleting productos item:', err); await loadAllData(); return false; }
   }, [loadAllData]);
 
   // ===== CRUD GALERÍA =====
@@ -301,9 +301,9 @@ export function useSitioData(): UseSitioDataReturn {
   useEffect(() => { loadAllData(); }, [loadAllData]);
 
   return {
-    sitio, sitioConfig, sitioTextos, categorias, menuItems, galeria, features, formRestaurante, pageLayout, loading, error,
-    loadAllData, setFormRestaurante, setCategorias, setMenuItems, setGaleria, setFeatures, setPageLayout, saveRestaurante,
-    addCategoria, addMenuItem, updateMenuItem, deleteMenuItem,
+    sitio, sitioConfig, sitioTextos, categorias, productos, galeria, features, formTienda, pageLayout, loading, error,
+    loadAllData, setFormTienda, setCategorias, setProducts, setGaleria, setFeatures, setPageLayout, saveTienda,
+    addCategoria, addProduct, updateProduct, deleteProduct,
     addGaleriaItem, toggleGaleriaHome, toggleGaleriaVisible, updateGaleriaItem, deleteGaleriaItem,
     addFeature, updateFeature, deleteFeature
   };

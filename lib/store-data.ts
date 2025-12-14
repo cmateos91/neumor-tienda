@@ -4,28 +4,28 @@ import {
   SitioConfig,
   SitioGaleria,
   SitioFeature,
-  SitioReserva,
-  SitioMenuCategoria,
-  SitioMenuItem,
-  RestauranteData,
+  SitioPedido,
+  SitioProductoCategoria,
+  SitioProduct,
+  TiendaData,
   TextosInicio,
   TextosMenu,
   TextosGaleria,
-  TextosReservas,
+  TextosPedidos,
   TextosContacto,
   TextosNav,
   defaultTextosInicio,
   defaultTextosMenu,
   defaultTextosGaleria,
-  defaultTextosReservas,
+  defaultTextosPedidos,
   defaultTextosContacto,
   defaultTextosNav,
-  SitioReservaInsert,
+  SitioPedidoInsert,
   SitioConfigUpdate,
   SitioGaleriaInsert,
   SitioFeatureInsert,
-  SitioMenuCategoriaInsert,
-  SitioMenuItemInsert
+  SitioProductoCategoriaInsert,
+  SitioProductInsert
 } from './database.types';
 
 // ============================================
@@ -84,9 +84,9 @@ export async function getSitioConfig(sitioId: string): Promise<SitioConfig | nul
  */
 export async function getSitioTextos(sitioId: string): Promise<{
   inicio: TextosInicio;
-  menu: TextosMenu;
+  productos: TextosMenu;
   galeria: TextosGaleria;
-  reservas: TextosReservas;
+  pedidos: TextosPedidos;
   contacto: TextosContacto;
   nav: TextosNav;
 }> {
@@ -103,18 +103,18 @@ export async function getSitioTextos(sitioId: string): Promise<{
 
     return {
       inicio: { ...defaultTextosInicio, ...textosMap['inicio'] } as TextosInicio,
-      menu: { ...defaultTextosMenu, ...textosMap['menu'] } as TextosMenu,
+      productos: { ...defaultTextosMenu, ...textosMap['productos'] } as TextosMenu,
       galeria: { ...defaultTextosGaleria, ...textosMap['galeria'] } as TextosGaleria,
-      reservas: { ...defaultTextosReservas, ...textosMap['reservas'] } as TextosReservas,
+      pedidos: { ...defaultTextosPedidos, ...textosMap['pedidos'] } as TextosPedidos,
       contacto: { ...defaultTextosContacto, ...textosMap['contacto'] } as TextosContacto,
       nav: { ...defaultTextosNav, ...textosMap['nav'] } as TextosNav
     };
   } catch {
     return {
       inicio: defaultTextosInicio,
-      menu: defaultTextosMenu,
+      productos: defaultTextosMenu,
       galeria: defaultTextosGaleria,
-      reservas: defaultTextosReservas,
+      pedidos: defaultTextosPedidos,
       contacto: defaultTextosContacto,
       nav: defaultTextosNav
     };
@@ -146,11 +146,11 @@ export async function getSitioFeatures(sitioId: string): Promise<SitioFeature[]>
 }
 
 /**
- * Obtiene las reservas de un sitio
+ * Obtiene las pedidos de un sitio
  */
-export async function getSitioReservas(sitioId: string): Promise<SitioReserva[]> {
+export async function getSitioPedidos(sitioId: string): Promise<SitioPedido[]> {
   const { data } = await supabase
-    .from('sitio_reservas')
+    .from('sitio_pedidos')
     .select('*')
     .eq('sitio_id', sitioId)
     .order('created_at', { ascending: false });
@@ -164,9 +164,9 @@ export async function getSitioReservas(sitioId: string): Promise<SitioReserva[]>
 /**
  * Obtiene las categorías del menú de un sitio
  */
-export async function getMenuCategorias(sitioId: string): Promise<SitioMenuCategoria[]> {
+export async function getMenuCategorias(sitioId: string): Promise<SitioProductoCategoria[]> {
   const { data } = await supabase
-    .from('sitio_menu_categorias')
+    .from('sitio_producto_categorias')
     .select('*')
     .eq('sitio_id', sitioId)
     .order('orden');
@@ -176,9 +176,9 @@ export async function getMenuCategorias(sitioId: string): Promise<SitioMenuCateg
 /**
  * Obtiene los items del menú de un sitio
  */
-export async function getMenuItems(sitioId: string, soloDisponibles = true): Promise<SitioMenuItem[]> {
+export async function getProducts(sitioId: string, soloDisponibles = true): Promise<SitioProduct[]> {
   let query = supabase
-    .from('sitio_menu_items')
+    .from('sitio_productos')
     .select('*')
     .eq('sitio_id', sitioId);
 
@@ -196,7 +196,7 @@ export async function getMenuItems(sitioId: string, soloDisponibles = true): Pro
 export async function getMenuCompleto(sitioId: string) {
   const [categorias, items] = await Promise.all([
     getMenuCategorias(sitioId),
-    getMenuItems(sitioId)
+    getProducts(sitioId)
   ]);
 
   return { categorias, items };
@@ -207,10 +207,10 @@ export async function getMenuCompleto(sitioId: string) {
 // ============================================
 
 /**
- * Carga todos los datos de un restaurante en una sola llamada
+ * Carga todos los datos de un tienda en una sola llamada
  * Optimizado con Promise.all para cargas en paralelo
  */
-export async function getRestaurantData(): Promise<RestauranteData | null> {
+export async function getRestaurantData(): Promise<TiendaData | null> {
   try {
     // Primero obtener el sitio
     const sitio = await getSitio();
@@ -221,11 +221,11 @@ export async function getRestaurantData(): Promise<RestauranteData | null> {
     }
 
     // Cargar todo en paralelo
-    const [config, textos, categorias, menuItems, galeria, features] = await Promise.all([
+    const [config, textos, categorias, productos, galeria, features] = await Promise.all([
       getSitioConfig(sitio.id),
       getSitioTextos(sitio.id),
       getMenuCategorias(sitio.id),
-      getMenuItems(sitio.id),
+      getProducts(sitio.id),
       getSitioGaleria(sitio.id),
       getSitioFeatures(sitio.id)
     ]);
@@ -240,13 +240,13 @@ export async function getRestaurantData(): Promise<RestauranteData | null> {
       config,
       textos,
       categorias,
-      menuItems,
+      productos,
       galeria,
       galeriaHome: galeria.filter(g => g.es_home),
       features
     };
   } catch (error) {
-    console.error('Error cargando datos del restaurante:', error);
+    console.error('Error cargando datos del tienda:', error);
     return null;
   }
 }
@@ -256,17 +256,17 @@ export async function getRestaurantData(): Promise<RestauranteData | null> {
 // ============================================
 
 /**
- * Crea una nueva reserva
+ * Crea una nueva pedido
  */
-export async function crearReserva(reserva: SitioReservaInsert): Promise<SitioReserva | null> {
+export async function crearPedido(pedido: SitioPedidoInsert): Promise<SitioPedido | null> {
   const { data, error } = await supabase
-    .from('sitio_reservas')
-    .insert(reserva)
+    .from('sitio_pedidos')
+    .insert(pedido)
     .select()
     .single();
 
   if (error) {
-    console.error('Error creando reserva:', error);
+    console.error('Error creando pedido:', error);
     return null;
   }
 
@@ -274,16 +274,16 @@ export async function crearReserva(reserva: SitioReservaInsert): Promise<SitioRe
 }
 
 /**
- * Actualiza el estado de una reserva
+ * Actualiza el estado de una pedido
  */
-export async function actualizarEstadoReserva(
-  reservaId: string,
+export async function actualizarEstadoPedido(
+  pedidoId: string,
   estado: 'pendiente' | 'confirmada' | 'cancelada' | 'completada'
 ): Promise<boolean> {
   const { error } = await supabase
-    .from('sitio_reservas')
+    .from('sitio_pedidos')
     .update({ estado })
-    .eq('id', reservaId);
+    .eq('id', pedidoId);
 
   return !error;
 }
@@ -414,10 +414,10 @@ export async function eliminarFeature(featureId: string): Promise<boolean> {
 // ============================================
 
 export async function agregarMenuCategoria(
-  categoria: SitioMenuCategoriaInsert
-): Promise<SitioMenuCategoria | null> {
+  categoria: SitioProductoCategoriaInsert
+): Promise<SitioProductoCategoria | null> {
   const { data, error } = await supabase
-    .from('sitio_menu_categorias')
+    .from('sitio_producto_categorias')
     .insert(categoria)
     .select()
     .single();
@@ -432,10 +432,10 @@ export async function agregarMenuCategoria(
 
 export async function actualizarMenuCategoria(
   categoriaId: string,
-  updates: Partial<SitioMenuCategoria>
+  updates: Partial<SitioProductoCategoria>
 ): Promise<boolean> {
   const { error } = await supabase
-    .from('sitio_menu_categorias')
+    .from('sitio_producto_categorias')
     .update(updates)
     .eq('id', categoriaId);
 
@@ -444,18 +444,18 @@ export async function actualizarMenuCategoria(
 
 export async function eliminarMenuCategoria(categoriaId: string): Promise<boolean> {
   const { error } = await supabase
-    .from('sitio_menu_categorias')
+    .from('sitio_producto_categorias')
     .delete()
     .eq('id', categoriaId);
 
   return !error;
 }
 
-export async function agregarMenuItem(
-  item: SitioMenuItemInsert
-): Promise<SitioMenuItem | null> {
+export async function agregarProduct(
+  item: SitioProductInsert
+): Promise<SitioProduct | null> {
   const { data, error } = await supabase
-    .from('sitio_menu_items')
+    .from('sitio_productos')
     .insert(item)
     .select()
     .single();
@@ -468,21 +468,21 @@ export async function agregarMenuItem(
   return data;
 }
 
-export async function actualizarMenuItem(
+export async function actualizarProduct(
   itemId: string,
-  updates: Partial<SitioMenuItem>
+  updates: Partial<SitioProduct>
 ): Promise<boolean> {
   const { error } = await supabase
-    .from('sitio_menu_items')
+    .from('sitio_productos')
     .update({ ...updates, updated_at: new Date().toISOString() })
     .eq('id', itemId);
 
   return !error;
 }
 
-export async function eliminarMenuItem(itemId: string): Promise<boolean> {
+export async function eliminarProduct(itemId: string): Promise<boolean> {
   const { error } = await supabase
-    .from('sitio_menu_items')
+    .from('sitio_productos')
     .delete()
     .eq('id', itemId);
 

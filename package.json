@@ -1,7 +1,8 @@
 {
-  "name": "neumorstudio",
+  "name": "neumor-plantilla-tienda",
   "version": "0.1.0",
   "private": true,
+  "description": "Plantilla completa para tiendas online con panel de administración",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

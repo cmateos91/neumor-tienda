@@ -25,9 +25,9 @@ import {
   ConfirmDialog,
   InputDialog,
   InicioTab,
-  MenuTab,
+  ProductosTab,
   GaleriaTab,
-  ReservasTab,
+  PedidosTab,
   ContactoTab,
   DashboardContainer
 } from './components';
@@ -62,21 +62,21 @@ export default function AdminEditor() {
   const {
     sitio,
     categorias,
-    menuItems,
+    productos,
     galeria,
     features,
-    formRestaurante,
+    formTienda,
     pageLayout,
     loading,
-    setFormRestaurante,
+    setFormTienda,
     setGaleria,
-    setMenuItems,
+    setProducts,
     setPageLayout,
-    saveRestaurante,
+    saveTienda,
     addCategoria,
-    addMenuItem,
-    updateMenuItem,
-    deleteMenuItem,
+    addProduct,
+    updateProduct,
+    deleteProduct,
     addGaleriaItem,
     toggleGaleriaHome,
     toggleGaleriaVisible,
@@ -149,7 +149,7 @@ export default function AdminEditor() {
     setPageBuilderMode,
     refreshIframe,
     navigateIframe,
-    sendRestauranteData,
+    sendTiendaData,
     sendMenuData,
     sendGaleriaData,
     sendFeaturesData,
@@ -185,8 +185,8 @@ export default function AdminEditor() {
 
   // Sincronizar datos con iframe cuando cambian (excluyendo items marcados para eliminación)
   useEffect(() => {
-    sendRestauranteData(formRestaurante);
-  }, [formRestaurante, sendRestauranteData]);
+    sendTiendaData(formTienda);
+  }, [formTienda, sendTiendaData]);
 
   // Sincronizar ref con pageLayout cuando se carga desde la BD
   useEffect(() => {
@@ -197,9 +197,9 @@ export default function AdminEditor() {
 
   useEffect(() => {
     // Filtrar items marcados para eliminación
-    const filteredMenuItems = menuItems.filter(item => !isMarkedForDeletion(item.id));
-    sendMenuData(categorias, filteredMenuItems);
-  }, [categorias, menuItems, sendMenuData, isMarkedForDeletion]);
+    const filteredProducts = productos.filter(item => !isMarkedForDeletion(item.id));
+    sendMenuData(categorias, filteredProducts);
+  }, [categorias, productos, sendMenuData, isMarkedForDeletion]);
 
   useEffect(() => {
     // Filtrar items marcados para eliminación y ocultos
@@ -268,7 +268,7 @@ export default function AdminEditor() {
     try {
       // Copias locales para actualizar con las nuevas URLs
       let updatedGaleria = [...galeria];
-      let updatedMenuItems = [...menuItems];
+      let updatedProducts = [...productos];
 
       // 1. Primero ejecutar eliminaciones pendientes si hay
       if (hasPendingDeletes) {
@@ -278,11 +278,11 @@ export default function AdminEditor() {
 
         // Filtrar los items eliminados de las copias locales
         updatedGaleria = updatedGaleria.filter(g => !deletedGaleria.includes(g.id));
-        updatedMenuItems = updatedMenuItems.filter(m => !deletedMenu.includes(m.id));
+        updatedProducts = updatedProducts.filter(m => !deletedMenu.includes(m.id));
 
         // Actualizar el estado local para que la UI refleje las eliminaciones
         setGaleria(updatedGaleria);
-        setMenuItems(updatedMenuItems);
+        setProducts(updatedProducts);
       }
 
       // 2. Luego subir archivos pendientes si hay
@@ -306,11 +306,11 @@ export default function AdminEditor() {
           } else if (id.startsWith('menu-')) {
             const menuId = id.replace('menu-', '');
             // Actualizar copia local
-            updatedMenuItems = updatedMenuItems.map(m =>
+            updatedProducts = updatedProducts.map(m =>
               m.id === menuId ? { ...m, imagen_url: newUrl } : m
             );
             // Actualizar estado para la UI
-            updateMenuItem(menuId, 'imagen_url', newUrl);
+            updateProduct(menuId, 'imagen_url', newUrl);
           }
         }
       }
@@ -319,9 +319,9 @@ export default function AdminEditor() {
       // Usar la ref para evitar race conditions con el estado asíncrono
       const pageLayoutToSave = latestPageLayoutRef.current || pageLayout;
       console.log('[Admin] Guardando - Ref:', latestPageLayoutRef.current ? 'tiene valor' : 'null', '- Estado:', pageLayout ? 'tiene valor' : 'null', '- Usando:', pageLayoutToSave === latestPageLayoutRef.current ? 'REF' : 'ESTADO');
-      const success = await saveRestaurante({
+      const success = await saveTienda({
         galeria: updatedGaleria,
-        menuItems: updatedMenuItems,
+        productos: updatedProducts,
         pageLayout: pageLayoutToSave || undefined
       });
 
@@ -445,8 +445,8 @@ export default function AdminEditor() {
                 <InicioTab
                   sitio={sitio}
                   features={features}
-                  formRestaurante={formRestaurante}
-                  setFormRestaurante={setFormRestaurante}
+                  formTienda={formTienda}
+                  setFormTienda={setFormTienda}
                   expandedPage={expandedPage}
                   setExpandedPage={setExpandedPage}
                   onAddFeature={addFeature}
@@ -456,17 +456,17 @@ export default function AdminEditor() {
                 />
               )}
 
-              {activeTab === 'menu' && (
-                <MenuTab
+              {activeTab === 'productos' && (
+                <ProductosTab
                   sitio={sitio}
                   categorias={categorias}
-                  menuItems={menuItems}
-                  formRestaurante={formRestaurante}
-                  setFormRestaurante={setFormRestaurante}
+                  productos={productos}
+                  formTienda={formTienda}
+                  setFormTienda={setFormTienda}
                   onAddCategoria={addCategoria}
-                  onAddMenuItem={addMenuItem}
-                  onUpdateMenuItem={updateMenuItem}
-                  onDeleteMenuItem={deleteMenuItem}
+                  onAddProduct={addProduct}
+                  onUpdateProduct={updateProduct}
+                  onDeleteProduct={deleteProduct}
                   onRefresh={refreshIframe}
                   promptText={promptText}
                   addPendingFile={addPendingFile}
@@ -482,8 +482,8 @@ export default function AdminEditor() {
                 <GaleriaTab
                   sitio={sitio}
                   galeria={galeria}
-                  formRestaurante={formRestaurante}
-                  setFormRestaurante={setFormRestaurante}
+                  formTienda={formTienda}
+                  setFormTienda={setFormTienda}
                   onAddItem={addGaleriaItem}
                   onToggleHome={toggleGaleriaHome}
                   onToggleVisible={toggleGaleriaVisible}
@@ -499,10 +499,10 @@ export default function AdminEditor() {
                 />
               )}
 
-              {activeTab === 'reservas' && (
-                <ReservasTab
-                  formRestaurante={formRestaurante}
-                  setFormRestaurante={setFormRestaurante}
+              {activeTab === 'pedidos' && (
+                <PedidosTab
+                  formTienda={formTienda}
+                  setFormTienda={setFormTienda}
                   expandedPage={expandedPage}
                   setExpandedPage={setExpandedPage}
                 />
@@ -510,8 +510,8 @@ export default function AdminEditor() {
 
               {activeTab === 'contacto' && (
                 <ContactoTab
-                  formRestaurante={formRestaurante}
-                  setFormRestaurante={setFormRestaurante}
+                  formTienda={formTienda}
+                  setFormTienda={setFormTienda}
                   expandedPage={expandedPage}
                   setExpandedPage={setExpandedPage}
                 />

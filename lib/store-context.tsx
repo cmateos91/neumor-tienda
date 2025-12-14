@@ -4,74 +4,74 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 import { supabase } from './supabase';
 import {
   SitioConfig,
-  SitioMenuCategoria,
-  SitioMenuItem,
+  SitioProductoCategoria,
+  SitioProduct,
   SitioGaleria,
   SitioFeature,
   TextosInicio,
   TextosMenu,
   TextosGaleria,
-  TextosReservas,
+  TextosPedidos,
   TextosContacto,
   TextosNav,
   defaultTextosInicio,
   defaultTextosMenu,
   defaultTextosGaleria,
-  defaultTextosReservas,
+  defaultTextosPedidos,
   defaultTextosContacto,
   defaultTextosNav
 } from './database.types';
 import { PageSection, defaultHomeLayout } from './page-builder.types';
 
 // Tipos para el contexto
-interface RestaurantTextos {
+interface StoreTextos {
   inicio: TextosInicio;
   menu: TextosMenu;
   galeria: TextosGaleria;
-  reservas: TextosReservas;
+  pedidos: TextosPedidos;
   contacto: TextosContacto;
   nav: TextosNav;
 }
 
-interface RestaurantData {
+interface StoreData {
   sitioId: string | null;
   config: SitioConfig | null;
-  textos: RestaurantTextos;
-  categorias: SitioMenuCategoria[];
-  menuItems: SitioMenuItem[];
+  textos: StoreTextos;
+  categorias: SitioProductoCategoria[];
+  productos: SitioProduct[];
   galeria: SitioGaleria[];
   galeriaHome: SitioGaleria[];
   features: SitioFeature[];
   pageLayout: PageSection[];
 }
 
-interface RestaurantContextValue extends RestaurantData {
+interface StoreContextValue extends StoreData {
   loading: boolean;
   error: string | null;
   // Funciones para actualizar desde el admin (preview en tiempo real)
   updateConfig: (data: Partial<SitioConfig>) => void;
-  updateTextos: (pagina: keyof RestaurantTextos, textos: Partial<RestaurantTextos[keyof RestaurantTextos]>) => void;
-  updateMenu: (categorias: SitioMenuCategoria[], items: SitioMenuItem[]) => void;
+  updateTextos: (pagina: keyof StoreTextos, textos: Partial<StoreTextos[keyof StoreTextos]>) => void;
+  updateMenu: (categorias: SitioProductoCategoria[], items: SitioProduct[]) => void;
   updateGaleria: (items: SitioGaleria[]) => void;
   updateFeatures: (items: SitioFeature[]) => void;
 }
 
 // Valores por defecto
-const defaultTextos: RestaurantTextos = {
+const defaultTextos: StoreTextos = {
   inicio: defaultTextosInicio,
   menu: defaultTextosMenu,
   galeria: defaultTextosGaleria,
-  reservas: defaultTextosReservas,
+  pedidos: defaultTextosPedidos,
   contacto: defaultTextosContacto,
   nav: defaultTextosNav
 };
 
-const defaultContextValue: RestaurantContextValue = {
+const defaultContextValue: StoreContextValue = {
   sitioId: null,
   config: null,
   textos: defaultTextos,
   categorias: [],
-  menuItems: [],
+  productos: [],
   galeria: [],
   galeriaHome: [],
   features: [],
@@ -86,29 +86,29 @@ const defaultContextValue: RestaurantContextValue = {
 };
 
 // Crear el contexto
-const RestaurantContext = createContext<RestaurantContextValue>(defaultContextValue);
+const StoreContext = createContext<StoreContextValue>(defaultContextValue);
 
 // Hook para usar el contexto
 export function useRestaurant() {
-  const context = useContext(RestaurantContext);
+  const context = useContext(StoreContext);
   if (!context) {
-    throw new Error('useRestaurant debe usarse dentro de RestaurantProvider');
+    throw new Error('useRestaurant debe usarse dentro de StoreProvider');
   }
   return context;
 }
 
 // Provider del contexto
-interface RestaurantProviderProps {
+interface StoreProviderProps {
   children: ReactNode;
 }
 
-export function RestaurantProvider({ children }: RestaurantProviderProps) {
-  const [data, setData] = useState<RestaurantData>({
+export function StoreProvider({ children }: StoreProviderProps) {
+  const [data, setData] = useState<StoreData>({
     sitioId: null,
     config: null,
     textos: defaultTextos,
     categorias: [],
-    menuItems: [],
+    productos: [],
     galeria: [],
     galeriaHome: [],
     features: [],
@@ -138,14 +138,14 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         const [configRes, textosRes, categoriasRes, itemsRes, galeriaRes, featuresRes] = await Promise.all([
           supabase.from('sitio_config').select('*').eq('sitio_id', sitio.id).single(),
           supabase.from('sitio_textos').select('pagina, textos').eq('sitio_id', sitio.id),
-          supabase.from('sitio_menu_categorias').select('*').eq('sitio_id', sitio.id).order('orden'),
-          supabase.from('sitio_menu_items').select('*').eq('sitio_id', sitio.id).eq('disponible', true).order('orden'),
+          supabase.from('sitio_producto_categorias').select('*').eq('sitio_id', sitio.id).order('orden'),
+          supabase.from('sitio_productos').select('*').eq('sitio_id', sitio.id).eq('disponible', true).order('orden'),
           supabase.from('sitio_galeria').select('*').eq('sitio_id', sitio.id).eq('visible', true).order('orden'),
           supabase.from('sitio_features').select('*').eq('sitio_id', sitio.id).order('orden')
         ]);
 
         // 3. Procesar textos
-        const textosMap: RestaurantTextos = { ...defaultTextos };
+        const textosMap: StoreTextos = { ...defaultTextos };
         textosRes.data?.forEach((t: { pagina: string; textos: Record<string, string> }) => {
           if (t.pagina === 'inicio') {
             textosMap.inicio = { ...defaultTextosInicio, ...t.textos } as TextosInicio;
@@ -154,7 +154,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
           } else if (t.pagina === 'galeria') {
             textosMap.galeria = { ...defaultTextosGaleria, ...t.textos } as TextosGaleria;
           } else if (t.pagina === 'reservas') {
-            textosMap.reservas = { ...defaultTextosReservas, ...t.textos } as TextosReservas;
+            textosMap.pedidos = { ...defaultTextosPedidos, ...t.textos } as TextosPedidos;
           } else if (t.pagina === 'contacto') {
             textosMap.contacto = { ...defaultTextosContacto, ...t.textos } as TextosContacto;
           } else if (t.pagina === 'nav') {
@@ -170,7 +170,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         const config = configRes.data;
         const pageLayoutSections = config?.page_layout?.sections || defaultHomeLayout.sections;
 
-        console.log('[RestaurantContext] Cargando pageLayout:', pageLayoutSections);
+        console.log('[StoreContext] Cargando pageLayout:', pageLayoutSections);
 
         // 6. Actualizar estado
         setData({
@@ -178,7 +178,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
           config: config,
           textos: textosMap,
           categorias: categoriasRes.data || [],
-          menuItems: itemsRes.data || [],
+          productos: itemsRes.data || [],
           galeria: galeriaItems,
           galeriaHome,
           features: featuresRes.data || [],
@@ -204,7 +204,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
     }));
   }, []);
 
-  const updateTextos = useCallback((pagina: keyof RestaurantTextos, newTextos: Partial<RestaurantTextos[keyof RestaurantTextos]>) => {
+  const updateTextos = useCallback((pagina: keyof StoreTextos, newTextos: Partial<StoreTextos[keyof StoreTextos]>) => {
     setData(prev => ({
       ...prev,
       textos: {
@@ -214,11 +214,11 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
     }));
   }, []);
 
-  const updateMenu = useCallback((categorias: SitioMenuCategoria[], items: SitioMenuItem[]) => {
+  const updateMenu = useCallback((categorias: SitioProductoCategoria[], items: SitioProduct[]) => {
     setData(prev => ({
       ...prev,
       categorias,
-      menuItems: items
+      productos: items
     }));
   }, []);
 
@@ -268,8 +268,8 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
 
         // Actualizar textos
         updateTextos('inicio', {
-          btn_menu: msgData.inicio_btn_menu,
-          btn_reservas: msgData.inicio_btn_reservas,
+          btn_productos: msgData.inicio_btn_menu,
+          btn_pedidos: msgData.inicio_btn_reservas,
           features_titulo: msgData.inicio_features_titulo,
           features_subtitulo: msgData.inicio_features_subtitulo,
           galeria_titulo: msgData.inicio_galeria_titulo,
@@ -286,7 +286,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
           titulo: msgData.galeria_titulo,
           subtitulo: msgData.galeria_subtitulo
         });
-        updateTextos('reservas', {
+        updateTextos('pedidos', {
           titulo: msgData.reservas_titulo,
           subtitulo: msgData.reservas_subtitulo,
           exito_titulo: msgData.reservas_exito_titulo,
@@ -302,9 +302,9 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
         });
         updateTextos('nav', {
           nav_inicio: msgData.nav_inicio,
-          nav_menu: msgData.nav_menu,
+          nav_productos: msgData.nav_menu,
           nav_galeria: msgData.nav_galeria,
-          nav_reservas: msgData.nav_reservas,
+          nav_pedidos: msgData.nav_reservas,
           nav_contacto: msgData.nav_contacto
         });
       }
@@ -326,7 +326,7 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
     return () => window.removeEventListener('message', handleMessage);
   }, [updateConfig, updateTextos, updateMenu, updateGaleria, updateFeatures]);
 
-  const value: RestaurantContextValue = {
+  const value: StoreContextValue = {
     ...data,
     loading,
     error,
@@ -338,8 +338,8 @@ export function RestaurantProvider({ children }: RestaurantProviderProps) {
   };
 
   return (
-    <RestaurantContext.Provider value={value}>
+    <StoreContext.Provider value={value}>
       {children}
-    </RestaurantContext.Provider>
+    </StoreContext.Provider>
   );
 }

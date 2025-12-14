@@ -3,22 +3,22 @@
 import type {
   Sitio,
   SitioConfig,
-  SitioMenuCategoria,
-  SitioMenuItem,
+  SitioProductoCategoria,
+  SitioProduct,
   SitioGaleria,
   SitioFeature
 } from '@/lib/database.types';
 import type { PageSection } from '@/lib/page-builder.types';
 
-// ===== FORM RESTAURANTE =====
+// ===== FORM TIENDA =====
 
-export interface FormRestaurante {
+export interface FormTienda {
   // Inicio - Hero
   nombre: string;
   tagline: string;
   descripcion: string;
   inicio_btn_menu: string;
-  inicio_btn_reservas: string;
+  inicio_btn_pedidos: string;
   // Inicio - Seccion Features
   inicio_features_titulo: string;
   inicio_features_subtitulo: string;
@@ -30,7 +30,7 @@ export interface FormRestaurante {
   nav_inicio: string;
   nav_menu: string;
   nav_galeria: string;
-  nav_reservas: string;
+  nav_pedidos: string;
   nav_contacto: string;
   // Menu
   menu_titulo: string;
@@ -40,20 +40,20 @@ export interface FormRestaurante {
   // Galeria
   galeria_titulo: string;
   galeria_subtitulo: string;
-  // Reservas
-  reservas_titulo: string;
-  reservas_subtitulo: string;
-  reservas_exito_titulo: string;
-  reservas_exito_mensaje: string;
-  reservas_btn_confirmar: string;
-  reservas_btn_enviando: string;
+  // Pedidos
+  pedidos_titulo: string;
+  pedidos_subtitulo: string;
+  pedidos_exito_titulo: string;
+  pedidos_exito_mensaje: string;
+  pedidos_btn_confirmar: string;
+  pedidos_btn_enviando: string;
   // Contacto
   contacto_titulo: string;
   contacto_subtitulo: string;
   telefono: string;
   telefono_secundario: string;
   email: string;
-  email_reservas: string;
+  email_pedidos: string;
   direccion_calle: string;
   direccion_ciudad: string;
   direccion_cp: string;
@@ -68,12 +68,12 @@ export interface FormRestaurante {
   contacto_info_descripcion: string;
 }
 
-export const defaultFormRestaurante: FormRestaurante = {
+export const defaultFormTienda: FormTienda = {
   nombre: '',
   tagline: '',
   descripcion: '',
   inicio_btn_menu: 'Ver Menu',
-  inicio_btn_reservas: 'Reservar Mesa',
+  inicio_btn_pedidos: 'Pedidor Mesa',
   inicio_features_titulo: 'Por Que Elegirnos',
   inicio_features_subtitulo: 'Comprometidos con la excelencia en cada detalle',
   inicio_galeria_titulo: 'Ambiente Unico',
@@ -82,7 +82,7 @@ export const defaultFormRestaurante: FormRestaurante = {
   nav_inicio: 'Inicio',
   nav_menu: 'Menu',
   nav_galeria: 'Galeria',
-  nav_reservas: 'Reservar',
+  nav_pedidos: 'Pedidor',
   nav_contacto: 'Contacto',
   menu_titulo: 'Nuestro Menú',
   menu_subtitulo: 'Descubre una selección de platos elaborados con ingredientes frescos y de temporada',
@@ -90,18 +90,18 @@ export const defaultFormRestaurante: FormRestaurante = {
   menu_sin_items: 'No hay items en esta categoria',
   galeria_titulo: 'Galería',
   galeria_subtitulo: 'Déjate inspirar por nuestros platos y ambiente',
-  reservas_titulo: 'Reserva tu Mesa',
-  reservas_subtitulo: 'Asegura tu lugar en una experiencia culinaria excepcional',
-  reservas_exito_titulo: '¡Reserva Confirmada!',
-  reservas_exito_mensaje: 'Hemos recibido tu reserva. Te enviaremos un email de confirmación pronto.',
-  reservas_btn_confirmar: 'Confirmar Reserva',
-  reservas_btn_enviando: 'Enviando...',
+  pedidos_titulo: 'Pedido tu Mesa',
+  pedidos_subtitulo: 'Asegura tu lugar en una experiencia culinaria excepcional',
+  pedidos_exito_titulo: '¡Pedido Confirmada!',
+  pedidos_exito_mensaje: 'Hemos recibido tu pedido. Te enviaremos un email de confirmación pronto.',
+  pedidos_btn_confirmar: 'Confirmar Pedido',
+  pedidos_btn_enviando: 'Enviando...',
   contacto_titulo: 'Contacto',
   contacto_subtitulo: 'Estamos aquí para atenderte y hacer de tu visita una experiencia memorable',
   telefono: '',
   telefono_secundario: '',
   email: '',
-  email_reservas: '',
+  email_pedidos: '',
   direccion_calle: '',
   direccion_ciudad: '',
   direccion_cp: '',
@@ -122,11 +122,11 @@ export interface SitioDataState {
   sitio: Sitio | null;
   sitioConfig: SitioConfig | null;
   sitioTextos: Record<string, Record<string, string>>;
-  categorias: SitioMenuCategoria[];
-  menuItems: SitioMenuItem[];
+  categorias: SitioProductoCategoria[];
+  productos: SitioProduct[];
   galeria: SitioGaleria[];
   features: SitioFeature[];
-  formRestaurante: FormRestaurante;
+  formTienda: FormTienda;
   pageLayout: PageSection[] | null;
   loading: boolean;
   error: string | null;
@@ -134,13 +134,13 @@ export interface SitioDataState {
 
 // ===== ACTIONS INTERFACES =====
 
-export interface MenuItemsActions {
+export interface ProductsActions {
   addCategoria: (nombre: string) => Promise<boolean>;
-  addMenuItem: (categoriaId: string) => Promise<boolean>;
-  updateMenuItem: (id: string, field: string, value: string | number | boolean) => void;
-  deleteMenuItem: (id: string) => Promise<boolean>;
-  setCategorias: React.Dispatch<React.SetStateAction<SitioMenuCategoria[]>>;
-  setMenuItems: React.Dispatch<React.SetStateAction<SitioMenuItem[]>>;
+  addProduct: (categoriaId: string) => Promise<boolean>;
+  updateProduct: (id: string, field: string, value: string | number | boolean) => void;
+  deleteProduct: (id: string) => Promise<boolean>;
+  setCategorias: React.Dispatch<React.SetStateAction<SitioProductoCategoria[]>>;
+  setProducts: React.Dispatch<React.SetStateAction<SitioProduct[]>>;
 }
 
 export interface GaleriaActions {
@@ -159,11 +159,11 @@ export interface FeaturesActions {
   setFeatures: React.Dispatch<React.SetStateAction<SitioFeature[]>>;
 }
 
-export interface SitioDataActions extends MenuItemsActions, GaleriaActions, FeaturesActions {
+export interface SitioDataActions extends ProductsActions, GaleriaActions, FeaturesActions {
   loadAllData: () => Promise<void>;
-  setFormRestaurante: React.Dispatch<React.SetStateAction<FormRestaurante>>;
+  setFormTienda: React.Dispatch<React.SetStateAction<FormTienda>>;
   setPageLayout: React.Dispatch<React.SetStateAction<PageSection[] | null>>;
-  saveRestaurante: (updatedData?: { galeria?: SitioGaleria[]; menuItems?: SitioMenuItem[]; pageLayout?: PageSection[] }) => Promise<boolean>;
+  saveTienda: (updatedData?: { galeria?: SitioGaleria[]; productos?: SitioProduct[]; pageLayout?: PageSection[] }) => Promise<boolean>;
 }
 
 export type UseSitioDataReturn = SitioDataState & SitioDataActions;

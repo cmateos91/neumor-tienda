@@ -50,3 +50,4 @@ next-env.d.ts
 # docs con configuracion especifica
 /docs/n8n-setup.md
 CLAUDE.md
+proceso-cliente.md

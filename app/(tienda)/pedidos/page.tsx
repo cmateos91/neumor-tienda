@@ -3,12 +3,12 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, Users, Mail, Phone, User, MessageSquare, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { useRestaurant } from '@/lib/restaurant-context';
+import { useRestaurant } from '@/lib/store-context';
 import EditableWrapper from '../_components/EditableWrapper';
 
-export default function Reservas() {
+export default function Pedidos() {
   const { sitioId, textos } = useRestaurant();
-  const pageTexts = textos.reservas;
+  const pageTexts = textos.pedidos;
 
   const [formData, setFormData] = useState({
     nombre: '',
@@ -30,8 +30,8 @@ export default function Reservas() {
 
     try {
       if (sitioId) {
-        // Guardar en sitio_reservas
-        const { data: reserva, error: insertError } = await supabase.from('sitio_reservas').insert({
+        // Guardar en sitio_pedidos
+        const { data: pedido, error: insertError } = await supabase.from('sitio_pedidos').insert({
           sitio_id: sitioId,
           nombre: formData.nombre,
           email: formData.email,
@@ -45,12 +45,12 @@ export default function Reservas() {
 
         if (insertError) throw insertError;
 
-        // Enviar alerta al restaurante (no bloqueante)
-        if (reserva?.id) {
-          fetch('/api/reservas/email', {
+        // Enviar alerta al tienda (no bloqueante)
+        if (pedido?.id) {
+          fetch('/api/pedidos/email', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reservaId: reserva.id, tipo: 'nueva' })
+            body: JSON.stringify({ pedidoId: pedido.id, tipo: 'nueva' })
           }).catch(console.error);
         }
       }
@@ -70,8 +70,8 @@ export default function Reservas() {
         });
       }, 3000);
     } catch (err) {
-      console.error('Error guardando reserva:', err);
-      setError('Error al procesar la reserva. Por favor, intentalo de nuevo.');
+      console.error('Error guardando pedido:', err);
+      setError('Error al procesar la pedido. Por favor, intentalo de nuevo.');
     } finally {
       setIsSubmitting(false);
     }
@@ -88,10 +88,10 @@ export default function Reservas() {
           <div className="neuro-pressed rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
             <CheckCircle2 className="w-12 h-12 text-[#d4af37]" />
           </div>
-          <EditableWrapper elementId="reservas.exito_titulo" as="h2" className="text-4xl font-bold text-[#2c2c2c] mb-4">
+          <EditableWrapper elementId="pedidos.exito_titulo" as="h2" className="text-4xl font-bold text-[#2c2c2c] mb-4">
             {pageTexts.exito_titulo}
           </EditableWrapper>
-          <EditableWrapper elementId="reservas.exito_mensaje" as="p" className="text-[#666666] text-lg">
+          <EditableWrapper elementId="pedidos.exito_mensaje" as="p" className="text-[#666666] text-lg">
             {pageTexts.exito_mensaje}
           </EditableWrapper>
         </div>
@@ -104,10 +104,10 @@ export default function Reservas() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <EditableWrapper elementId="reservas.titulo" as="h1" className="text-5xl md:text-6xl font-bold text-[#2c2c2c] mb-4">
+          <EditableWrapper elementId="pedidos.titulo" as="h1" className="text-5xl md:text-6xl font-bold text-[#2c2c2c] mb-4">
             {pageTexts.titulo}
           </EditableWrapper>
-          <EditableWrapper elementId="reservas.subtitulo" as="p" className="text-[#666666] text-lg max-w-2xl mx-auto">
+          <EditableWrapper elementId="pedidos.subtitulo" as="p" className="text-[#666666] text-lg max-w-2xl mx-auto">
             {pageTexts.subtitulo}
           </EditableWrapper>
         </div>
@@ -175,7 +175,7 @@ export default function Reservas() {
               </div>
             </div>
 
-            {/* Reservation Details */}
+            {/* Pedidotion Details */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-[#2c2c2c] flex items-center gap-2">
@@ -251,11 +251,11 @@ export default function Reservas() {
               className="w-full neuro-flat neuro-hover rounded-2xl py-6 text-lg font-semibold text-[#2c2c2c] bg-transparent border-0 cursor-pointer disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
-                <EditableWrapper elementId="reservas.btn_enviando" as="span">
+                <EditableWrapper elementId="pedidos.btn_enviando" as="span">
                   {pageTexts.btn_enviando}
                 </EditableWrapper>
               ) : (
-                <EditableWrapper elementId="reservas.btn" as="span">
+                <EditableWrapper elementId="pedidos.btn" as="span">
                   {pageTexts.btn_confirmar}
                 </EditableWrapper>
               )}

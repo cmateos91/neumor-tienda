@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, UtensilsCrossed, Loader2 } from 'lucide-react';
-import { RestaurantProvider, useRestaurant } from '@/lib/restaurant-context';
+import { StoreProvider, useRestaurant } from '@/lib/store-context';
 import { defaultTextosNav } from '@/lib/database.types';
 import '@/app/_styles/neumorph-restaurant.css';
 
@@ -43,7 +43,7 @@ function RestaurantLayoutContent({ children }: { children: React.ReactNode }) {
   }, [pathname]);
 
   // Actualizar titulo de la pagina dinamicamente
-  const nombre = config?.nombre || 'Mi Restaurante';
+  const nombre = config?.nombre || 'Mi Tienda';
   useEffect(() => {
     document.title = nombre;
   }, [nombre]);
@@ -51,9 +51,9 @@ function RestaurantLayoutContent({ children }: { children: React.ReactNode }) {
   const nav = textos?.nav || defaultTextosNav;
   const navItems = [
     { name: nav.nav_inicio, path: '/' },
-    { name: nav.nav_menu, path: '/menu' },
+    { name: nav.nav_productos, path: '/productos' },
     { name: nav.nav_galeria, path: '/galeria' },
-    { name: nav.nav_reservas, path: '/reservas' },
+    { name: nav.nav_pedidos, path: '/pedidos' },
     { name: nav.nav_contacto, path: '/contacto' }
   ];
 
@@ -187,7 +187,7 @@ function RestaurantLayoutContent({ children }: { children: React.ReactNode }) {
               </div>
             </div>
             <div className="mt-8 pt-8 border-t border-[#d1d1d1] text-center">
-              <p className="text-[#666666] text-sm">© {new Date().getFullYear()} {nombre}. Todos los derechos reservados.</p>
+              <p className="text-[#666666] text-sm">© {new Date().getFullYear()} {nombre}. Todos los derechos pedidodos.</p>
             </div>
           </div>
         </div>
@@ -200,8 +200,8 @@ function RestaurantLayoutContent({ children }: { children: React.ReactNode }) {
 // Layout principal con Provider
 export default function RestaurantLayout({ children }: { children: React.ReactNode }) {
   return (
-    <RestaurantProvider>
+    <StoreProvider>
       <RestaurantLayoutContent>{children}</RestaurantLayoutContent>
-    </RestaurantProvider>
+    </StoreProvider>
   );
 }

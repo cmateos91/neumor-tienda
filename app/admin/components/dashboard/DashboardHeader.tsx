@@ -12,7 +12,7 @@ import {
   Zap
 } from 'lucide-react';
 
-export type DashboardTab = 'overview' | 'leads' | 'messages' | 'reviews' | 'reservations' | 'automations' | 'settings';
+export type DashboardTab = 'overview' | 'leads' | 'messages' | 'reviews' | 'pedidotions' | 'automations' | 'settings';
 
 interface TabConfig {
   id: DashboardTab;
@@ -26,7 +26,7 @@ const tabs: TabConfig[] = [
   { id: 'leads', label: 'Leads', icon: Users },
   { id: 'messages', label: 'Mensajes', icon: MessageCircle },
   { id: 'reviews', label: 'Resenas', icon: Star },
-  { id: 'reservations', label: 'Reservas', icon: Calendar },
+  { id: 'pedidotions', label: 'Pedidos', icon: Calendar },
   { id: 'automations', label: 'Automatizaciones', icon: Zap },
 ];
 

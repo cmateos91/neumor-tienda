@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { Sitio, SitioConfigUpdate } from '@/lib/database.types';
 import { Save, Loader2 } from 'lucide-react';
 
-export default function AdminRestaurante() {
+export default function AdminTienda() {
   const [sitio, setSitio] = useState<Sitio | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -132,8 +132,8 @@ export default function AdminRestaurante() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Informacion del Restaurante</h1>
-        <p className="text-gray-500 mt-2">Configura los datos generales de tu restaurante</p>
+        <h1 className="text-3xl font-bold text-gray-800">Informacion del Tienda</h1>
+        <p className="text-gray-500 mt-2">Configura los datos generales de tu tienda</p>
       </div>
 
       {message && (
@@ -150,7 +150,7 @@ export default function AdminRestaurante() {
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Informacion Basica</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del restaurante *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del tienda *</label>
               <input
                 type="text"
                 name="nombre"
@@ -219,7 +219,7 @@ export default function AdminRestaurante() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email para reservas</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email para pedidos</label>
               <input
                 type="email"
                 name="email_secundario"

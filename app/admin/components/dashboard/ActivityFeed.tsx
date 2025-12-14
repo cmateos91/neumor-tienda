@@ -5,7 +5,7 @@ import { User, Mail, Star, MessageCircle, Clock, Calendar } from 'lucide-react';
 
 export interface ActivityItem {
   id: string;
-  type: 'lead' | 'email' | 'review' | 'message' | 'reservation';
+  type: 'lead' | 'email' | 'review' | 'message' | 'pedidotion';
   title: string;
   description: string;
   timestamp: Date;
@@ -22,7 +22,7 @@ const iconMap = {
   email: Mail,
   review: Star,
   message: MessageCircle,
-  reservation: Calendar
+  pedidotion: Calendar
 };
 
 const colorMap = {
@@ -30,7 +30,7 @@ const colorMap = {
   email: 'text-green-500 bg-green-100',
   review: 'text-amber-500 bg-amber-100',
   message: 'text-purple-500 bg-purple-100',
-  reservation: 'text-cyan-500 bg-cyan-100'
+  pedidotion: 'text-cyan-500 bg-cyan-100'
 };
 
 function formatTimeAgo(date: Date): string {

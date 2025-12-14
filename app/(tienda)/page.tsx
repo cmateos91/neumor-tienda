@@ -11,7 +11,7 @@ import EditableSection from './_components/EditableSection';
 import EditableComponent from './_components/EditableComponent';
 import { ComponentRenderer } from './_components/PageBuilderComponents';
 import { PageSection, defaultHomeLayout } from '@/lib/page-builder.types';
-import { useRestaurant } from '@/lib/restaurant-context';
+import { useRestaurant } from '@/lib/store-context';
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   ChefHat, Award, Clock, MapPin, UtensilsCrossed, Wine, Star, Heart, Users, Leaf, Flame, Coffee
@@ -37,7 +37,7 @@ export default function Home() {
     // Solo sincronizar si no estamos en modo edición
     // En modo edición, los cambios vienen del admin via mensajes
     if (!isEditMode) {
-      console.log('[Restaurante Page] Sincronizando sections desde contexto:', contextPageLayout);
+      console.log('[Tienda Page] Sincronizando sections desde contexto:', contextPageLayout);
       setSections(contextPageLayout);
     }
   }, [contextPageLayout, isEditMode]);
@@ -51,18 +51,18 @@ export default function Home() {
 
       // Entrar/salir modo edición
       if (type === 'pagebuilder:enter-edit') {
-        console.log('[Restaurante Page] Entrando en modo edición');
+        console.log('[Tienda Page] Entrando en modo edición');
         setIsEditMode(true);
       }
       if (type === 'pagebuilder:exit-edit') {
-        console.log('[Restaurante Page] Saliendo de modo edición');
+        console.log('[Tienda Page] Saliendo de modo edición');
         setIsEditMode(false);
         setSelectedSectionId(null);
       }
 
       // Actualizar layout desde admin
       if (type === 'pagebuilder:update-layout') {
-        console.log('[Restaurante Page] Recibiendo update-layout desde admin:', msgData?.sections);
+        console.log('[Tienda Page] Recibiendo update-layout desde admin:', msgData?.sections);
         if (msgData?.sections) {
           setSections(msgData.sections);
         }
@@ -75,7 +75,7 @@ export default function Home() {
 
   // Notificar al admin cuando cambia el layout
   const notifyLayoutChange = useCallback((newSections: PageSection[]) => {
-    console.log('[Restaurante Page] Notificando cambio de layout al admin:', JSON.stringify(newSections, null, 2));
+    console.log('[Tienda Page] Notificando cambio de layout al admin:', JSON.stringify(newSections, null, 2));
     window.parent.postMessage({
       type: 'preview:layout-changed',
       data: { sections: newSections }  // Envolver sections en data
@@ -93,7 +93,7 @@ export default function Home() {
   // Manejar fin de drag de secciones
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    console.log('[Restaurante Page] handleDragEnd - active:', active.id, 'over:', over?.id);
+    console.log('[Tienda Page] handleDragEnd - active:', active.id, 'over:', over?.id);
 
     if (over && active.id !== over.id) {
       setSections((items) => {
@@ -112,7 +112,7 @@ export default function Home() {
   // Manejar fin de drag de componentes dentro de una sección
   const handleComponentDragEnd = (event: DragEndEvent, sectionId: string) => {
     const { active, over } = event;
-    console.log('[Restaurante Page] handleComponentDragEnd - section:', sectionId, 'active:', active.id, 'over:', over?.id);
+    console.log('[Tienda Page] handleComponentDragEnd - section:', sectionId, 'active:', active.id, 'over:', over?.id);
 
     if (over && active.id !== over.id) {
       setSections((sections) => {
@@ -147,7 +147,7 @@ export default function Home() {
   };
 
   // Datos del context
-  const nombre = config?.nombre || 'Mi Restaurante';
+  const nombre = config?.nombre || 'Mi Tienda';
   const tagline = config?.tagline || 'Bienvenido a nuestra experiencia gastronómica';
   const inicioTextos = textos.inicio;
 
@@ -161,7 +161,7 @@ export default function Home() {
         // Si hay children definidos, renderizar dinámicamente respetando el orden
         if (section.children && section.children.length > 0) {
           const sortedChildren = [...section.children].sort((a, b) => a.order - b.order);
-          console.log('[Restaurante Page] Renderizando hero con children:', sortedChildren.map(c => `${c.id}:${c.order}`).join(', '));
+          console.log('[Tienda Page] Renderizando hero con children:', sortedChildren.map(c => `${c.id}:${c.order}`).join(', '));
 
           return (
             <section key={section.id} className="px-4 pt-12 pb-20">
@@ -232,17 +232,17 @@ export default function Home() {
                   </EditableWrapper>
 
                   <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                    <EditableWrapper elementId="inicio.hero.btn_menu">
-                      <Link href="/menu" prefetch={true}>
+                    <EditableWrapper elementId="inicio.hero.btn_productos">
+                      <Link href="/productos" prefetch={true}>
                         <button className="neuro-flat neuro-hover rounded-2xl px-8 py-4 text-[#2c2c2c] font-semibold w-full sm:w-auto transition-all cursor-pointer">
-                          {inicioTextos.btn_menu}
+                          {inicioTextos.btn_productos}
                         </button>
                       </Link>
                     </EditableWrapper>
-                    <EditableWrapper elementId="inicio.hero.btn_reservas">
-                      <Link href="/reservas" prefetch={true}>
+                    <EditableWrapper elementId="inicio.hero.btn_pedidos">
+                      <Link href="/pedidos" prefetch={true}>
                         <button className="neuro-pressed rounded-2xl px-8 py-4 text-[#d4af37] font-semibold w-full sm:w-auto transition-all cursor-pointer">
-                          {inicioTextos.btn_reservas}
+                          {inicioTextos.btn_pedidos}
                         </button>
                       </Link>
                     </EditableWrapper>

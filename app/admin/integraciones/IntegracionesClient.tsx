@@ -7,12 +7,12 @@ export function IntegracionesClient() {
   const connected = searchParams.get("connected");
   
   // Leemos el ID desde la variable pública (configuración de la plantilla)
-  const restauranteId = process.env.NEXT_PUBLIC_RESTAURANTE_ID;
+  const tiendaId = process.env.NEXT_PUBLIC_TIENDA_ID;
 
   const handleConnectClick = async () => {
     try {
       // Llamamos a nuestro propio backend, pasando el ID
-      const res = await fetch(`/api/meta/connect?clienteId=${restauranteId}`);
+      const res = await fetch(`/api/meta/connect?clienteId=${tiendaId}`);
       const data = await res.json();
 
       if (data.url) {

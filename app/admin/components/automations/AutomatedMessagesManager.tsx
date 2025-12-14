@@ -29,8 +29,8 @@ interface AutomatedMessagesManagerProps {
 const triggerLabels: Record<MessageTrigger, { label: string; description: string }> = {
   lead_created: { label: 'Nuevo Lead', description: 'Cuando llega un nuevo contacto' },
   message_received: { label: 'Mensaje Recibido', description: 'Cuando el cliente envia un mensaje' },
-  reservation_created: { label: 'Nueva Reserva', description: 'Cuando se crea una reserva' },
-  reservation_confirmed: { label: 'Reserva Confirmada', description: 'Cuando se confirma una reserva' },
+  pedidotion_created: { label: 'Nueva Pedido', description: 'Cuando se crea una pedido' },
+  pedidotion_confirmed: { label: 'Pedido Confirmada', description: 'Cuando se confirma una pedido' },
   follow_up: { label: 'Seguimiento', description: 'Mensaje programado de seguimiento' }
 };
 
@@ -55,7 +55,7 @@ const channelLabels: Record<MessageChannel, string> = {
 export function AutomatedMessagesManager({ sitioId }: AutomatedMessagesManagerProps) {
   const searchParams = useSearchParams();
   const connected = searchParams.get("connected");
-  const restauranteId = process.env.NEXT_PUBLIC_RESTAURANTE_ID;
+  const tiendaId = process.env.NEXT_PUBLIC_TIENDA_ID;
 
   const {
     messages,
@@ -103,7 +103,7 @@ export function AutomatedMessagesManager({ sitioId }: AutomatedMessagesManagerPr
 
   const handleConnectMeta = async () => {
     try {
-      const res = await fetch(`/api/meta/connect?clienteId=${restauranteId}`);
+      const res = await fetch(`/api/meta/connect?clienteId=${tiendaId}`);
       const data = await res.json();
 
       if (data.url) {

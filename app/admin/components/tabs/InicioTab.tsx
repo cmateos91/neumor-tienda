@@ -10,7 +10,7 @@ import {
   LayoutPanelTop, PanelBottomClose,
   type LucideIcon
 } from 'lucide-react';
-import { FormRestaurante } from '../../hooks/useSitioData';
+import { FormTienda } from '../../hooks/useSitioData';
 import { SitioFeature } from '@/lib/database.types';
 
 // Iconos disponibles para features
@@ -37,8 +37,8 @@ const getIconByName = (name: string): LucideIcon => {
 interface InicioTabProps {
   sitio: { id: string } | null;
   features: SitioFeature[];
-  formRestaurante: FormRestaurante;
-  setFormRestaurante: React.Dispatch<React.SetStateAction<FormRestaurante>>;
+  formTienda: FormTienda;
+  setFormTienda: React.Dispatch<React.SetStateAction<FormTienda>>;
   expandedPage: string | null;
   setExpandedPage: (page: string | null) => void;
   onAddFeature: () => Promise<boolean>;
@@ -50,8 +50,8 @@ interface InicioTabProps {
 export function InicioTab({
   sitio,
   features,
-  formRestaurante,
-  setFormRestaurante,
+  formTienda,
+  setFormTienda,
   expandedPage,
   setExpandedPage,
   onAddFeature,
@@ -59,8 +59,8 @@ export function InicioTab({
   onDeleteFeature,
   confirmDelete
 }: InicioTabProps) {
-  const updateField = (field: keyof FormRestaurante, value: string) => {
-    setFormRestaurante(prev => ({ ...prev, [field]: value }));
+  const updateField = (field: keyof FormTienda, value: string) => {
+    setFormTienda(prev => ({ ...prev, [field]: value }));
   };
 
   const handleDeleteFeature = async (feature: SitioFeature) => {
@@ -82,9 +82,9 @@ export function InicioTab({
       >
         <SectionBlock title="Texto de cabecera">
           <InputField
-            label="Nombre del restaurante (logo)"
+            label="Nombre del tienda (logo)"
             field="nombre"
-            value={formRestaurante.nombre}
+            value={formTienda.nombre}
             onChange={updateField}
             placeholder="Nombre que aparece en la barra superior"
           />
@@ -95,31 +95,31 @@ export function InicioTab({
             <InputField
               label="Inicio"
               field="nav_inicio"
-              value={formRestaurante.nav_inicio}
+              value={formTienda.nav_inicio}
               onChange={updateField}
             />
             <InputField
               label="Menu"
               field="nav_menu"
-              value={formRestaurante.nav_menu}
+              value={formTienda.nav_menu}
               onChange={updateField}
             />
             <InputField
               label="Galeria"
               field="nav_galeria"
-              value={formRestaurante.nav_galeria}
+              value={formTienda.nav_galeria}
               onChange={updateField}
             />
             <InputField
-              label="Reservar"
-              field="nav_reservas"
-              value={formRestaurante.nav_reservas}
+              label="Pedidor"
+              field="nav_pedidos"
+              value={formTienda.nav_pedidos}
               onChange={updateField}
             />
             <InputField
               label="Contacto"
               field="nav_contacto"
-              value={formRestaurante.nav_contacto}
+              value={formTienda.nav_contacto}
               onChange={updateField}
             />
           </div>
@@ -137,38 +137,38 @@ export function InicioTab({
         {/* HERO - Lo primero que se ve */}
         <SectionBlock title="Hero - Lo primero que se ve">
           <InputField
-            label="Nombre del restaurante"
+            label="Nombre del tienda"
             field="nombre"
-            value={formRestaurante.nombre}
+            value={formTienda.nombre}
             onChange={updateField}
-            placeholder="Nombre del restaurante"
+            placeholder="Nombre del tienda"
           />
           <InputField
             label="Frase destacada"
             field="tagline"
-            value={formRestaurante.tagline}
+            value={formTienda.tagline}
             onChange={updateField}
             placeholder="Ej: Cocina tradicional desde 1990"
           />
           <TextAreaField
             label="Descripcion (opcional)"
             field="descripcion"
-            value={formRestaurante.descripcion}
+            value={formTienda.descripcion}
             onChange={updateField}
-            placeholder="Descripcion breve del restaurante"
+            placeholder="Descripcion breve del tienda"
             rows={2}
           />
           <div className="grid grid-cols-2 gap-2">
             <InputField
               label="Boton 1"
               field="inicio_btn_menu"
-              value={formRestaurante.inicio_btn_menu}
+              value={formTienda.inicio_btn_menu}
               onChange={updateField}
             />
             <InputField
               label="Boton 2"
-              field="inicio_btn_reservas"
-              value={formRestaurante.inicio_btn_reservas}
+              field="inicio_btn_pedidos"
+              value={formTienda.inicio_btn_pedidos}
               onChange={updateField}
             />
           </div>
@@ -179,19 +179,19 @@ export function InicioTab({
           <InputField
             label="Titulo de la seccion"
             field="inicio_galeria_titulo"
-            value={formRestaurante.inicio_galeria_titulo}
+            value={formTienda.inicio_galeria_titulo}
             onChange={updateField}
           />
           <InputField
             label="Subtitulo"
             field="inicio_galeria_subtitulo"
-            value={formRestaurante.inicio_galeria_subtitulo}
+            value={formTienda.inicio_galeria_subtitulo}
             onChange={updateField}
           />
           <InputField
             label="Texto del boton"
             field="inicio_galeria_btn"
-            value={formRestaurante.inicio_galeria_btn}
+            value={formTienda.inicio_galeria_btn}
             onChange={updateField}
           />
           <p className="text-xs text-gray-400 italic">Las imagenes se editan en el tab &quot;Galeria&quot; (marcadas como &quot;Home&quot;)</p>
@@ -202,13 +202,13 @@ export function InicioTab({
           <InputField
             label="Titulo de la seccion"
             field="inicio_features_titulo"
-            value={formRestaurante.inicio_features_titulo}
+            value={formTienda.inicio_features_titulo}
             onChange={updateField}
           />
           <InputField
             label="Subtitulo"
             field="inicio_features_subtitulo"
-            value={formRestaurante.inicio_features_subtitulo}
+            value={formTienda.inicio_features_subtitulo}
             onChange={updateField}
           />
 
@@ -217,7 +217,7 @@ export function InicioTab({
             <div className="flex items-center justify-between">
               <p className="text-xs font-medium text-gray-600">Características destacadas</p>
               {!sitio && (
-                <p className="text-xs text-amber-600">Primero crea el restaurante</p>
+                <p className="text-xs text-amber-600">Primero crea el tienda</p>
               )}
             </div>
 
@@ -306,7 +306,7 @@ export function InicioTab({
           <TextAreaField
             label="Descripcion corta"
             field="descripcion"
-            value={formRestaurante.descripcion}
+            value={formTienda.descripcion}
             onChange={updateField}
             placeholder="Texto bajo el nombre en el pie"
             rows={2}
@@ -314,21 +314,21 @@ export function InicioTab({
           <InputField
             label="Horario semana"
             field="horario_semana"
-            value={formRestaurante.horario_semana}
+            value={formTienda.horario_semana}
             onChange={updateField}
             placeholder="Ej: Lun-Vie 12:00 - 23:00"
           />
           <InputField
             label="Horario fin de semana"
             field="horario_finde"
-            value={formRestaurante.horario_finde}
+            value={formTienda.horario_finde}
             onChange={updateField}
             placeholder="Ej: Sab-Dom 12:00 - 01:00"
           />
           <InputField
             label="Telefono principal"
             field="telefono"
-            value={formRestaurante.telefono}
+            value={formTienda.telefono}
             onChange={updateField}
             placeholder="+34 ..."
             type="tel"
@@ -336,9 +336,9 @@ export function InicioTab({
           <InputField
             label="Email principal"
             field="email"
-            value={formRestaurante.email}
+            value={formTienda.email}
             onChange={updateField}
-            placeholder="contacto@restaurante.com"
+            placeholder="contacto@tienda.com"
             type="email"
           />
         </SectionBlock>
@@ -403,9 +403,9 @@ function SectionBlock({ title, children }: SectionBlockProps) {
 
 interface InputFieldProps {
   label: string;
-  field: keyof FormRestaurante;
+  field: keyof FormTienda;
   value: string;
-  onChange: (field: keyof FormRestaurante, value: string) => void;
+  onChange: (field: keyof FormTienda, value: string) => void;
   placeholder?: string;
   type?: string;
 }
@@ -428,9 +428,9 @@ function InputField({ label, field, value, onChange, placeholder, type = 'text' 
 
 interface TextAreaFieldProps {
   label: string;
-  field: keyof FormRestaurante;
+  field: keyof FormTienda;
   value: string;
-  onChange: (field: keyof FormRestaurante, value: string) => void;
+  onChange: (field: keyof FormTienda, value: string) => void;
   placeholder?: string;
   rows?: number;
 }

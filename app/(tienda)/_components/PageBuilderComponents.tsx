@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ChefHat, Award, Clock, MapPin, UtensilsCrossed, Wine, Star, Heart, Users, Leaf, Flame, Coffee } from 'lucide-react';
 import EditableWrapper from './EditableWrapper';
 import { PageComponent } from '@/lib/page-builder.types';
-import { useRestaurant } from '@/lib/restaurant-context';
+import { useRestaurant } from '@/lib/store-context';
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   ChefHat, Award, Clock, MapPin, UtensilsCrossed, Wine, Star, Heart, Users, Leaf, Flame, Coffee
@@ -62,7 +62,7 @@ export function HeadingComponent({ component, isEditMode }: ComponentRendererPro
   const elementId = props.elementId as string;
 
   // Obtener el texto desde el config según la key
-  const text = textKey === 'nombre' ? config?.nombre || 'Mi Restaurante' : config?.tagline || '';
+  const text = textKey === 'nombre' ? config?.nombre || 'Mi Tienda' : config?.tagline || '';
 
   const HeadingTag = `h${level}` as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 

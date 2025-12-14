@@ -14,13 +14,13 @@
 -- Tabla maestra de sitios
 CREATE TABLE IF NOT EXISTS public.sitios (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
-  tipo text NOT NULL DEFAULT 'restaurante',
+  tipo text NOT NULL DEFAULT 'tienda',
   slug text UNIQUE,
   activo boolean DEFAULT true,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT sitios_pkey PRIMARY KEY (id),
-  CONSTRAINT sitios_tipo_check CHECK (tipo IN ('restaurante', 'gimnasio', 'hotel', 'peluqueria', 'clinica'))
+  CONSTRAINT sitios_tipo_check CHECK (tipo IN ('tienda', 'restaurante', 'gimnasio', 'hotel', 'peluqueria', 'clinica'))
 );
 
 -- Configuración general del sitio (datos compartidos por todas las plantillas)
@@ -93,41 +93,45 @@ CREATE TABLE IF NOT EXISTS public.sitio_features (
   CONSTRAINT sitio_features_sitio_id_fkey FOREIGN KEY (sitio_id) REFERENCES public.sitios(id) ON DELETE CASCADE
 );
 
--- Reservas/Citas (genérica - sirve para restaurantes, peluquerías, clínicas, etc.)
-CREATE TABLE IF NOT EXISTS public.sitio_reservas (
+-- Pedidos (para tiendas online)
+CREATE TABLE IF NOT EXISTS public.sitio_pedidos (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   sitio_id uuid NOT NULL,
   nombre text NOT NULL,
   email text NOT NULL,
   telefono text,
-  fecha date NOT NULL,
-  hora time without time zone NOT NULL,
-  personas integer DEFAULT 1,
-  servicio text,
+  direccion_envio text,
+  items jsonb NOT NULL DEFAULT '[]',
+  subtotal numeric NOT NULL DEFAULT 0,
+  impuestos numeric DEFAULT 0,
+  envio numeric DEFAULT 0,
+  total numeric NOT NULL DEFAULT 0,
+  metodo_pago text,
   notas text,
   estado text DEFAULT 'pendiente',
   created_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT sitio_reservas_pkey PRIMARY KEY (id),
-  CONSTRAINT sitio_reservas_sitio_id_fkey FOREIGN KEY (sitio_id) REFERENCES public.sitios(id) ON DELETE CASCADE,
-  CONSTRAINT sitio_reservas_estado_check CHECK (estado IN ('pendiente', 'confirmada', 'cancelada', 'completada'))
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT sitio_pedidos_pkey PRIMARY KEY (id),
+  CONSTRAINT sitio_pedidos_sitio_id_fkey FOREIGN KEY (sitio_id) REFERENCES public.sitios(id) ON DELETE CASCADE,
+  CONSTRAINT sitio_pedidos_estado_check CHECK (estado IN ('pendiente', 'confirmado', 'procesando', 'enviado', 'entregado', 'cancelado'))
 );
 
 -- ============================================
--- PASO 2: Tablas específicas de RESTAURANTE
+-- PASO 2: Tablas específicas de TIENDA
 -- ============================================
 
-CREATE TABLE IF NOT EXISTS public.restaurante_menu_categorias (
+CREATE TABLE IF NOT EXISTS public.sitio_producto_categorias (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   sitio_id uuid NOT NULL,
   nombre text NOT NULL,
   descripcion text,
   orden integer DEFAULT 0,
   created_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT restaurante_menu_categorias_pkey PRIMARY KEY (id),
-  CONSTRAINT restaurante_menu_categorias_sitio_id_fkey FOREIGN KEY (sitio_id) REFERENCES public.sitios(id) ON DELETE CASCADE
+  CONSTRAINT sitio_producto_categorias_pkey PRIMARY KEY (id),
+  CONSTRAINT sitio_producto_categorias_sitio_id_fkey FOREIGN KEY (sitio_id) REFERENCES public.sitios(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS public.restaurante_menu_items (
+CREATE TABLE IF NOT EXISTS public.sitio_productos (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   sitio_id uuid NOT NULL,
   categoria_id uuid,
@@ -135,15 +139,16 @@ CREATE TABLE IF NOT EXISTS public.restaurante_menu_items (
   descripcion text,
   precio numeric NOT NULL,
   imagen_url text,
-  alergenos text[],
+  stock integer DEFAULT 0,
+  sku text,
   disponible boolean DEFAULT true,
   destacado boolean DEFAULT false,
   orden integer DEFAULT 0,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT restaurante_menu_items_pkey PRIMARY KEY (id),
-  CONSTRAINT restaurante_menu_items_sitio_id_fkey FOREIGN KEY (sitio_id) REFERENCES public.sitios(id) ON DELETE CASCADE,
-  CONSTRAINT restaurante_menu_items_categoria_id_fkey FOREIGN KEY (categoria_id) REFERENCES public.restaurante_menu_categorias(id) ON DELETE SET NULL
+  CONSTRAINT sitio_productos_pkey PRIMARY KEY (id),
+  CONSTRAINT sitio_productos_sitio_id_fkey FOREIGN KEY (sitio_id) REFERENCES public.sitios(id) ON DELETE CASCADE,
+  CONSTRAINT sitio_productos_categoria_id_fkey FOREIGN KEY (categoria_id) REFERENCES public.sitio_producto_categorias(id) ON DELETE SET NULL
 );
 
 -- ============================================
@@ -154,7 +159,7 @@ CREATE TABLE IF NOT EXISTS public.restaurante_menu_items (
 INSERT INTO public.sitios (id, tipo, slug, activo, created_at, updated_at)
 SELECT
   id,
-  'restaurante',
+  'tienda',
   LOWER(REPLACE(REPLACE(nombre, ' ', '-'), '''', '')),
   true,
   created_at,
@@ -172,7 +177,7 @@ INSERT INTO public.sitio_config (
 SELECT
   id,
   nombre, tagline, descripcion, telefono, telefono_secundario,
-  email, email_reservas, direccion_calle, direccion_ciudad, direccion_cp,
+  email, email_pedidos, direccion_calle, direccion_ciudad, direccion_cp,
   direccion_pais, horario_semana, horario_finde, instagram, facebook, twitter,
   mapa_embed_url, created_at, updated_at
 FROM public.restaurantes
@@ -185,8 +190,8 @@ SELECT
   id,
   'inicio',
   jsonb_build_object(
-    'btn_menu', COALESCE(inicio_btn_menu, 'Ver Menú'),
-    'btn_reservas', COALESCE(inicio_btn_reservas, 'Reservar Mesa'),
+    'btn_productos', COALESCE(inicio_btn_productos, 'Ver Catálogo'),
+    'btn_pedidos', COALESCE(inicio_btn_pedidos, 'Hacer Pedido'),
     'features_titulo', COALESCE(inicio_features_titulo, 'Por Qué Elegirnos'),
     'features_subtitulo', COALESCE(inicio_features_subtitulo, 'Comprometidos con la excelencia'),
     'galeria_titulo', COALESCE(inicio_galeria_titulo, 'Ambiente Único'),
@@ -196,16 +201,16 @@ SELECT
 FROM public.restaurantes
 ON CONFLICT (sitio_id, pagina) DO NOTHING;
 
--- Página: menu
+-- Página: productos
 INSERT INTO public.sitio_textos (sitio_id, pagina, textos)
 SELECT
   id,
-  'menu',
+  'productos',
   jsonb_build_object(
-    'titulo', COALESCE(menu_titulo, 'Nuestro Menú'),
-    'subtitulo', COALESCE(menu_subtitulo, 'Descubre nuestra selección'),
-    'filtro_todos', COALESCE(menu_filtro_todos, 'Todos'),
-    'sin_items', COALESCE(menu_sin_items, 'No hay items en esta categoría')
+    'titulo', COALESCE(productos_titulo, 'Nuestros Productos'),
+    'subtitulo', COALESCE(productos_subtitulo, 'Descubre nuestro catálogo'),
+    'filtro_todos', COALESCE(productos_filtro_todos, 'Todos'),
+    'sin_items', COALESCE(productos_sin_items, 'No hay productos en esta categoría')
   )
 FROM public.restaurantes
 ON CONFLICT (sitio_id, pagina) DO NOTHING;
@@ -266,22 +271,22 @@ FROM public.features
 WHERE restaurante_id IS NOT NULL
 ON CONFLICT (id) DO NOTHING;
 
--- 3.6 Migrar reservas
-INSERT INTO public.sitio_reservas (id, sitio_id, nombre, email, telefono, fecha, hora, personas, notas, estado, created_at)
-SELECT id, restaurante_id, nombre, email, telefono, fecha, hora, personas, notas, estado, created_at
-FROM public.reservas
-WHERE restaurante_id IS NOT NULL
-ON CONFLICT (id) DO NOTHING;
+-- 3.6 Migrar pedidos (comentado - estructura nueva sin datos previos)
+-- INSERT INTO public.sitio_pedidos (id, sitio_id, nombre, email, telefono, direccion_envio, items, subtotal, total, notas, estado, created_at)
+-- SELECT id, tienda_id, nombre, email, telefono, direccion, items, subtotal, total, notas, estado, created_at
+-- FROM public.pedidos_antiguos
+-- WHERE tienda_id IS NOT NULL
+-- ON CONFLICT (id) DO NOTHING;
 
 -- 3.7 Migrar categorías del menú
-INSERT INTO public.restaurante_menu_categorias (id, sitio_id, nombre, orden, created_at)
+INSERT INTO public.sitio_producto_categorias (id, sitio_id, nombre, orden, created_at)
 SELECT id, restaurante_id, nombre, orden, created_at
 FROM public.menu_categorias
 WHERE restaurante_id IS NOT NULL
 ON CONFLICT (id) DO NOTHING;
 
 -- 3.8 Migrar items del menú
-INSERT INTO public.restaurante_menu_items (id, sitio_id, categoria_id, nombre, descripcion, precio, imagen_url, disponible, orden, created_at, updated_at)
+INSERT INTO public.sitio_productos (id, sitio_id, categoria_id, nombre, descripcion, precio, imagen_url, disponible, orden, created_at, updated_at)
 SELECT id, restaurante_id, categoria_id, nombre, descripcion, precio, imagen_url, disponible, orden, created_at, updated_at
 FROM public.menu_items
 WHERE restaurante_id IS NOT NULL
@@ -295,12 +300,12 @@ CREATE INDEX IF NOT EXISTS idx_sitio_config_sitio_id ON public.sitio_config(siti
 CREATE INDEX IF NOT EXISTS idx_sitio_textos_sitio_id ON public.sitio_textos(sitio_id);
 CREATE INDEX IF NOT EXISTS idx_sitio_galeria_sitio_id ON public.sitio_galeria(sitio_id);
 CREATE INDEX IF NOT EXISTS idx_sitio_features_sitio_id ON public.sitio_features(sitio_id);
-CREATE INDEX IF NOT EXISTS idx_sitio_reservas_sitio_id ON public.sitio_reservas(sitio_id);
-CREATE INDEX IF NOT EXISTS idx_sitio_reservas_fecha ON public.sitio_reservas(fecha);
-CREATE INDEX IF NOT EXISTS idx_sitio_reservas_estado ON public.sitio_reservas(estado);
-CREATE INDEX IF NOT EXISTS idx_restaurante_menu_categorias_sitio_id ON public.restaurante_menu_categorias(sitio_id);
-CREATE INDEX IF NOT EXISTS idx_restaurante_menu_items_sitio_id ON public.restaurante_menu_items(sitio_id);
-CREATE INDEX IF NOT EXISTS idx_restaurante_menu_items_categoria_id ON public.restaurante_menu_items(categoria_id);
+CREATE INDEX IF NOT EXISTS idx_sitio_pedidos_sitio_id ON public.sitio_pedidos(sitio_id);
+CREATE INDEX IF NOT EXISTS idx_sitio_pedidos_created_at ON public.sitio_pedidos(created_at);
+CREATE INDEX IF NOT EXISTS idx_sitio_pedidos_estado ON public.sitio_pedidos(estado);
+CREATE INDEX IF NOT EXISTS idx_sitio_producto_categorias_sitio_id ON public.sitio_producto_categorias(sitio_id);
+CREATE INDEX IF NOT EXISTS idx_sitio_productos_sitio_id ON public.sitio_productos(sitio_id);
+CREATE INDEX IF NOT EXISTS idx_sitio_productos_categoria_id ON public.sitio_productos(categoria_id);
 
 -- ============================================
 -- PASO 5: Crear funciones helper
@@ -342,6 +347,6 @@ $$ LANGUAGE plpgsql;
 -- SELECT COUNT(*) as textos FROM sitio_textos;
 -- SELECT COUNT(*) as galeria FROM sitio_galeria;
 -- SELECT COUNT(*) as features FROM sitio_features;
--- SELECT COUNT(*) as reservas FROM sitio_reservas;
--- SELECT COUNT(*) as categorias FROM restaurante_menu_categorias;
--- SELECT COUNT(*) as items FROM restaurante_menu_items;
+-- SELECT COUNT(*) as reservas FROM sitio_pedidos;
+-- SELECT COUNT(*) as categorias FROM sitio_producto_categorias;
+-- SELECT COUNT(*) as items FROM sitio_productos;

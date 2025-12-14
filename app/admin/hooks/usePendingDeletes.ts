@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 
 export interface PendingDelete {
   id: string;
-  type: 'galeria' | 'menu';
+  type: 'galeria' | 'productos';
   imageUrl?: string; // URL de la imagen para eliminar del storage
 }
 
@@ -14,7 +14,7 @@ export interface UsePendingDeletesReturn {
   // Set de IDs pendientes de eliminación
   pendingDeletes: Map<string, PendingDelete>;
   // Marcar un item para eliminación
-  markForDeletion: (id: string, type: 'galeria' | 'menu', imageUrl?: string) => void;
+  markForDeletion: (id: string, type: 'galeria' | 'productos', imageUrl?: string) => void;
   // Desmarcar un item (cancelar eliminación)
   unmarkForDeletion: (id: string) => void;
   // Verificar si un item está marcado para eliminación
@@ -32,7 +32,7 @@ export interface UsePendingDeletesReturn {
 export function usePendingDeletes(): UsePendingDeletesReturn {
   const [pendingDeletes, setPendingDeletes] = useState<Map<string, PendingDelete>>(new Map());
 
-  const markForDeletion = useCallback((id: string, type: 'galeria' | 'menu', imageUrl?: string) => {
+  const markForDeletion = useCallback((id: string, type: 'galeria' | 'productos', imageUrl?: string) => {
     setPendingDeletes(prev => {
       const next = new Map(prev);
       next.set(id, { id, type, imageUrl });
@@ -69,8 +69,8 @@ export function usePendingDeletes(): UsePendingDeletesReturn {
           if (!error) {
             deletedGaleria.push(id);
           }
-        } else if (pending.type === 'menu') {
-          const { error } = await supabase.from('sitio_menu_items').delete().eq('id', id);
+        } else if (pending.type === 'productos') {
+          const { error } = await supabase.from('sitio_productos').delete().eq('id', id);
           if (!error) {
             deletedMenu.push(id);
           }

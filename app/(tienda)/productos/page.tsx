@@ -2,11 +2,11 @@
 
 import React, { useState } from 'react';
 import MenuCard from '../_components/MenuCard';
-import { useRestaurant } from '@/lib/restaurant-context';
+import { useRestaurant } from '@/lib/store-context';
 import EditableWrapper from '../_components/EditableWrapper';
 
 export default function Menu() {
-  const { textos, categorias, menuItems } = useRestaurant();
+  const { textos, categorias, productos } = useRestaurant();
   const pageTexts = textos.menu;
 
   const [selectedCategory, setSelectedCategory] = useState(pageTexts.filtro_todos);
@@ -15,7 +15,7 @@ export default function Menu() {
   const categoryNames = [pageTexts.filtro_todos, ...categorias.map(c => c.nombre)];
 
   // Preparar items para mostrar
-  const allItems = menuItems.map(item => ({
+  const allItems = productos.map(item => ({
     id: item.id,
     nombre: item.nombre,
     descripcion: item.descripcion || '',
