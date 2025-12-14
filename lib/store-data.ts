@@ -33,16 +33,21 @@ import {
 // ============================================
 
 /**
- * Obtiene el primer sitio activo (para single-tenant)
- * En el futuro se puede filtrar por slug o id
+ * Obtiene el sitio según variable de entorno SITIO_SLUG
+ * Permite multi-tenant: cada deploy de Vercel carga su sitio
  */
 export async function getSitio(sitioId?: string): Promise<Sitio | null> {
   try {
     let query = supabase.from('sitios').select('*');
 
     if (sitioId) {
+      // Si se proporciona ID específico, usarlo
       query = query.eq('id', sitioId);
+    } else if (process.env.NEXT_PUBLIC_SITIO_SLUG) {
+      // Si hay variable de entorno, usar el slug
+      query = query.eq('slug', process.env.NEXT_PUBLIC_SITIO_SLUG);
     } else {
+      // Fallback: primer sitio activo
       query = query.eq('activo', true).limit(1);
     }
 

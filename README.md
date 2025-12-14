@@ -45,8 +45,11 @@ npm install
 ```env
 NEXT_PUBLIC_SUPABASE_URL=tu_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_supabase_key
+NEXT_PUBLIC_SITIO_SLUG=tienda-demo
 RESEND_API_KEY=tu_resend_key
 ```
+
+**Importante:** La variable `NEXT_PUBLIC_SITIO_SLUG` determina qué sitio se carga desde Supabase. Cada deploy puede tener un slug diferente para mostrar contenido distinto.
 
 4. Ejecuta el servidor de desarrollo:
 
@@ -83,6 +86,42 @@ app/
     ├── pedidos/       # Endpoints de pedidos
     └── automations/   # Sistema de automatizaciones
 ```
+
+## Arquitectura Multi-Tenant
+
+Esta plantilla soporta múltiples clientes usando una sola base de datos Supabase:
+
+### Cómo Funciona
+
+1. **Una base de datos** con todos los sitios
+2. **Un proyecto Vercel por cliente**
+3. Cada proyecto usa **la misma base de datos** pero carga datos diferentes
+
+### Configuración en Vercel
+
+Para cada cliente, crea un proyecto separado en Vercel con estas variables de entorno:
+
+**Proyecto 1 - Tienda:**
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
+NEXT_PUBLIC_SITIO_SLUG=tienda-demo
+```
+
+**Proyecto 2 - Restaurante:**
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co  # misma BD
+NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx                 # misma key
+NEXT_PUBLIC_SITIO_SLUG=demo                       # diferente slug
+```
+
+### Ventajas
+
+- ✅ Una sola base de datos para gestionar
+- ✅ Actualizaciones del código benefician a todos los clientes
+- ✅ Datos completamente separados por `sitio_id`
+- ✅ Cada cliente puede tener su dominio personalizado
+- ✅ Económico: un proyecto Supabase para todos
 
 ## Licencia
 
