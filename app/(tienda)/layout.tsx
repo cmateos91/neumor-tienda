@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, UtensilsCrossed, Loader2 } from 'lucide-react';
 import { StoreProvider, useRestaurant } from '@/lib/store-context';
 import { defaultTextosNav } from '@/lib/database.types';
+import { DebugBadge } from './_components/DebugBadge';
 import '@/app/_styles/neumorph-restaurant.css';
 
 // Componente interno que usa el context
@@ -192,6 +193,9 @@ function RestaurantLayoutContent({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </footer>
+
+      {/* Debug Badge */}
+      <DebugBadge />
       </div>
     </>
   );
